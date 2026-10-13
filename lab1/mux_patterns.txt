@@ -1,0 +1,11 @@
+# Test patterns for mux: one pattern per line, bits in the order  A B S
+# Empty lines and lines starting with '#' are ignored.
+# Exhaustive test set (all 2^3 combinations)
+000
+001
+010
+011
+100
+101
+110
+111

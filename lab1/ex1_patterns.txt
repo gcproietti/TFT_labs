@@ -1,0 +1,6 @@
+# Test patterns for ex1: one pattern per line, bits in the order  A B
+# Empty lines and lines starting with '#' are ignored.
+00
+10
+11
+01

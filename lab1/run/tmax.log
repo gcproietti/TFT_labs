@@ -1,0 +1,82 @@
+
+                             Synopsys TestMAX (TM) 
+                                  TetraMAX (R)
+
+               Version V-2023.12-SP1 for linux64 - Jan 16, 2024  
+
+                    Copyright (c) 1996 - 2024 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+   or distribution of this software is strictly prohibited.  Licensed Products
+     communicate with Synopsys servers for the purpose of providing software
+    updates, detecting software piracy and verifying that customers are using
+    Licensed Products in conformity with the applicable License Key for such
+  Licensed Products. Synopsys will use information gathered in connection with
+    this process to deliver software updates and pursue software pirates and
+                                   infringers.
+
+ Inclusivity & Diversity - Visit SolvNetPlus to read the "Synopsys Statement on
+            Inclusivity and Diversity" (Refer to article 000036315 at
+                        https://solvnetplus.synopsys.com)
+
+
+ Tcl mode is on by default. Use -notcl to run in native mode.
+ Executing startup file "/usr/local/synopsys/syn/V-2023.12-SP1/admin/setup/tmaxtcl.rc".
+read_netlist ../pdt2002.v -format verilog -insensitive -library
+ Begin reading netlist ( ../pdt2002.v )...
+ End parsing Verilog file ../pdt2002.v with 0 errors.
+ End reading netlist: #modules=35, top=logic_1, #lines=291, CPU_time=0.01 sec, Memory=0MB
+read_netlist ../ex1_structural_tmax.vhd -format vhdl -insensitive
+ Begin reading netlist ( ../ex1_structural_tmax.vhd )...
+ External packages: IEEE.std_logic_1164. Bit types: STD_LOGIC. 
+ End parsing VHDL file ../ex1_structural_tmax.vhd with 0 errors;
+ End reading netlist: #modules=1, top=ex1, #lines=26, CPU_time=0.00 sec, Memory=0MB
+run_build_model ex1
+ ------------------------------------------------------------------------------
+ Begin build model for topcut = ex1 ...
+ ------------------------------------------------------------------------------
+ There were 0 primitives and 0 faultable pins removed during model optimizations
+ End build model: #primitives=9, CPU_time=0.00 sec, Memory=0MB
+ ------------------------------------------------------------------------------
+ Begin learning analyses...
+ End learning analyses, total learning CPU time=0.01 sec.
+ ------------------------------------------------------------------------------
+run_drc
+ ------------------------------------------------------------------------------
+ Begin scan design rules checking...
+ ------------------------------------------------------------------------------
+ Begin simulating test protocol procedures...
+ Test protocol simulation completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin scan chain operation checking...
+ Scan chain operation checking completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin tracing connection cones...
+ Tracing connection cones completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin nonscan rules checking...
+ Nonscan cell summary: #DFF=0  #DLAT=0  #RAM_outs=0  tla_usage_type=none
+ Nonscan rules checking completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin DRC dependent learning...
+ Fast-sequential depth results: control=0(0), observe=0(0), detect=0(0), CPU time=0.00 sec
+ DRC dependent learning completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ Begin set operation for load unload constant latches...
+ Set operation for load unload constant latches completed, CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+ DRC Summary Report
+ ------------------------------------------------------------------------------
+ No violations occurred during DRC process.
+ Design rules checking was successful, total CPU time=0.00 sec.
+ ------------------------------------------------------------------------------
+set_faults -equiv_code --
+set_faults -model stuck
+add_faults -all
+ 38 faults were added to fault list.
+write_faults fault_list_stuckat_full.txt -all -replace -uncollapsed
+ Write faults completed: 38 faults were written into file "fault_list_stuckat_full.txt".
+write_faults fault_list_stuckat_collapsed.txt -all -replace -collapsed
+ Write faults completed: 20 faults were written into file "fault_list_stuckat_collapsed.txt".
+quit
