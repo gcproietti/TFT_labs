@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="330" viewBox="0 0 760 330" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="760" height="330" fill="#ffffff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <!-- wrapper -->
+  <rect x="120" y="20" width="520" height="290" rx="10" fill="none" stroke="#999" stroke-dasharray="6 4"/>
+  <text x="130" y="38" fill="#666">b10_wrapper.vhd</text>
+  <!-- TPG -->
+  <rect x="140" y="55" width="170" height="54" rx="6" fill="#e8eef8" stroke="#1f5fa8"/>
+  <text x="225" y="78" text-anchor="middle" font-weight="bold" fill="#1f5fa8">TPG</text>
+  <text x="225" y="97" text-anchor="middle" fill="#1f5fa8">32-bit LFSR (+ phase shifter)</text>
+  <!-- mux -->
+  <polygon points="250,135 290,150 290,215 250,230" fill="#f4f4f4" stroke="#333"/>
+  <text x="270" y="187" text-anchor="middle">mux</text>
+  <text x="248" y="148" text-anchor="end" font-size="11" fill="#333">1</text>
+  <text x="248" y="223" text-anchor="end" font-size="11" fill="#333">0</text>
+  <!-- b10 -->
+  <rect x="330" y="140" width="150" height="86" rx="6" fill="#fdf0e8" stroke="#b5531c"/>
+  <text x="405" y="175" text-anchor="middle" font-weight="bold" fill="#b5531c">b10 (UUT)</text>
+  <text x="405" y="195" text-anchor="middle" fill="#b5531c">17 flip-flops, no scan</text>
+  <!-- MISR -->
+  <rect x="470" y="248" width="160" height="50" rx="6" fill="#e8eef8" stroke="#1f5fa8"/>
+  <text x="550" y="269" text-anchor="middle" font-weight="bold" fill="#1f5fa8">ODE</text>
+  <text x="550" y="287" text-anchor="middle" fill="#1f5fa8">32-bit MISR</text>
+  <!-- controller -->
+  <rect x="140" y="248" width="290" height="50" rx="6" fill="#eeeeee" stroke="#333"/>
+  <text x="285" y="269" text-anchor="middle" font-weight="bold">controller</text>
+  <text x="285" y="287" text-anchor="middle">counter, FSM, compare with the golden signature</text>
+  <!-- wires -->
+  <path d="M225 109 L225 145 L248 145" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="232" y="128" font-size="11" fill="#333">11</text>
+  <path d="M20 220 L248 220" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="22" y="212">data inputs (11)</text>
+  <path d="M290 183 L328 183" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <path d="M480 183 L740 183" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="652" y="175">outputs (6)</text>
+  <path d="M550 183 L550 246" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <path d="M470 273 L432 273" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="436" y="266" font-size="11" fill="#333">signature</text>
+  <path d="M270 248 L270 226" fill="none" stroke="#333" stroke-dasharray="3 3" marker-end="url(#a)"/>
+  <text x="276" y="240" font-size="11" fill="#333">select</text>
+  <path d="M160 248 L160 111" fill="none" stroke="#333" stroke-dasharray="3 3" marker-end="url(#a)"/>
+  <text x="166" y="128" font-size="11" fill="#333">enable</text>
+  <path d="M430 290 L468 290" fill="none" stroke="#333" stroke-dasharray="3 3" marker-end="url(#a)"/>
+  <!-- external control -->
+  <path d="M20 265 L138 265" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="22" y="257">normal_test</text>
+  <path d="M140 290 L60 290 L60 318" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="68" y="314">go_nogo, test_over</text>
+</svg>

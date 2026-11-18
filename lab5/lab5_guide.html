@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab 5 · Pseudo-Random Test and Logic BIST</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab-manual page, left table of contents on wide screens, single column on phones */
+:root{
+  --bg:#f6f7f9; --paper:#ffffff; --fg:#1b2230; --muted:#5a6475; --rule:#dde1e8;
+  --accent:#1d4e89; --accent-soft:#e7eef8; --signal:#b4570b; --signal-soft:#fbf0e4;
+  --code-bg:#f1f3f7; --code-fg:#1b2230; --k:#7a2e8f; --s:#2b7a3d; --c:#7b8494; --n:#b4570b; --t:#1d4e89;
+  --display:"IBM Plex Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 var(--body)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:24px 64px}
+@media (min-width:1000px){.wrap{grid-template-columns:240px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:13px}}
+nav.toc .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid var(--rule)}
+nav.toc a.h3{padding-left:22px;font-size:12px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);border-left-color:var(--accent)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-bottom:12px}
+button{font:500 13px var(--body);color:var(--accent);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)} button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+article{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding-inline:clamp(16px,4vw,48px);padding-block:clamp(20px,4vw,44px);min-width:0}
+article>*{max-width:76ch} article>.tbl,article>pre{max-width:none}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;line-height:1.25;color:var(--fg)}
+h1{font-size:clamp(26px,4vw,34px);margin:0 0 4px}
+article>h2:first-of-type{margin-top:0}
+h2{font-size:24px;margin:2.2em 0 .6em;padding-top:.8em;border-top:1px solid var(--rule)}
+h1+h2{border-top:0;padding-top:0;margin-top:0;font-size:19px;font-weight:500;color:var(--muted)}
+h3{font-size:19px;margin:1.9em 0 .5em;color:var(--accent)}
+h4{font-family:var(--body);font-size:15px;font-weight:600;margin:1.6em 0 .4em}
+a{color:var(--accent)}
+p,li{margin:.5em 0}
+code{font:0.88em var(--mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.tbl{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;font-size:14px;min-width:100%;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--rule);padding:8px 10px;vertical-align:top;text-align:left}
+th{font-weight:600;background:var(--accent-soft);color:var(--fg)}
+blockquote{margin:1.2em 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0}
+blockquote p{margin:.35em 0}
+article>blockquote:first-of-type{border-left-color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:8px;font-size:14px}
+p.check{background:var(--signal-soft);border-left:3px solid var(--signal);padding:8px 14px;border-radius:0 6px 6px 0}
+p.check strong:first-child{color:var(--signal);font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+hr{display:none}
+article img{max-width:100%;height:auto;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:10px;box-sizing:border-box}
+article>p[align]{max-width:none}
+.hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string{color:var(--s)} .hljs-comment{color:var(--c);font-style:italic}
+.hljs-number{color:var(--n)} .hljs-type,.hljs-title,.hljs-meta,.hljs-variable{color:var(--t)}
+#status{font-size:12px;color:var(--muted);align-self:center}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" id="toc" aria-label="Contents"><div class="lbl">Contents</div>
+<a href="#1-objectives-and-prerequisites">1. Objectives and Prerequisites</a>
+<a class="h3" href="#11-why-this-lab">1.1 Why this lab</a>
+<a class="h3" href="#12-what-you-will-be-able-to-do-at-the-end-of-this-lab">1.2 What you will be able to do at the end of this lab</a>
+<a class="h3" href="#13-theory-you-must-have-clear-lecture-slides">1.3 Theory you must have clear (lecture slides)</a>
+<a href="#2-files-and-workspace-provided">2. Files and Workspace Provided</a>
+<a class="h3" href="#21-design-files">2.1 Design files</a>
+<a class="h3" href="#22-the-self-test-hardware-rtl">2.2 The self-test hardware (rtl/)</a>
+<a class="h3" href="#23-scripts">2.3 Scripts</a>
+<a class="h3" href="#24-the-two-self-tests">2.4 The two self-tests</a>
+<a class="h3" href="#25-testmax-fault-simulation-of-the-self-test-patterns">2.5 TestMAX: fault simulation of the self-test patterns</a>
+<a href="#3-guided-workflow">3. Guided Workflow</a>
+<a class="h3" href="#part-0--set-up">Part 0 — Set-up</a>
+<a class="h3" href="#part-a--lfsrs-and-signatures-by-hand">Part A — LFSRs and Signatures by Hand</a>
+<a class="h3" href="#part-b--a-functional-self-test-for-b10">Part B — A Functional Self-Test for b10</a>
+<a class="h3" href="#part-c--a-self-test-per-scan-for-b10">Part C — A Self-Test per Scan for b10</a>
+<a href="#4-wrap-up-and-discussion">4. Wrap-up and Discussion</a>
+<a class="h3" href="#41-what-you-have-seen">4.1 What you have seen</a>
+<a class="h3" href="#42-questions-for-discussion">4.2 Questions for discussion</a>
+<a class="h3" href="#43-self-check-can-you-do-it-without-a-tool">4.3 Self-check: can you do it without a tool?</a>
+<a class="h3" href="#44-habits-for-the-next-labs">4.4 Habits for the next labs</a>
+<a class="h3" href="#45-troubleshooting">4.5 Troubleshooting</a>
+<a href="#5-optional-exercises-and-further-study">5. Optional Exercises and Further Study</a>
+<a class="h3" href="#e1--reseeding">E1 — Reseeding</a>
+<a class="h3" href="#e2--faults-in-the-bist-circuitry">E2 — Faults in the BIST circuitry</a>
+<a class="h3" href="#e3--cancellation-in-the-misr">E3 — Cancellation in the MISR</a>
+<a class="h3" href="#e4--write-the-controller-yourself">E4 — Write the controller yourself</a>
+<a class="h3" href="#e5--the-faults-that-random-patterns-miss">E5 — The faults that random patterns miss</a>
+<a class="h3" href="#e6--weighted-patterns">E6 — Weighted patterns</a>
+<a class="h3" href="#e7--waveforms">E7 — Waveforms</a>
+<a class="h3" href="#e8--further-analysis-of-your-results">E8 — Further analysis of your results</a></nav>
+  <main style="min-width:0">
+    <article id="doc"><h1 id="testing-and-fault-tolerance-01rkzyg--laboratory-5">Testing and Fault Tolerance (01RKZYG) — Laboratory 5</h1>
+<h2 id="pseudo-random-test-and-logic-bist">Pseudo-Random Test and Logic BIST</h2>
+<blockquote>
+<p><strong>Course:</strong> 01RKZYG – Testing and Fault Tolerance, Politecnico di Torino<br />
+<strong>Working directory:</strong> <code>~/lab5</code> (remote <code>/home</code> directory) · all run outputs go to <code>~/lab5/run</code><br />
+<strong>Tools:</strong> Siemens Questa (<code>vsim</code>), as in Lab 1, and Synopsys TestMAX ATPG (<code>tmax</code>), as in Labs 2–4<br />
+<strong>Structure:</strong> guided workflow in Parts 0–C; the exercises of Section 5 are optional</p>
+</blockquote>
+<hr />
+<h2 id="1-objectives-and-prerequisites">1. Objectives and Prerequisites</h2>
+<h3 id="11-why-this-lab">1.1 Why this lab</h3>
+<p>In Labs 2–4 the test patterns were computed by the ATPG and stored in the memory of a tester, which applied them through the scan chains and compared every response with the expected one. <strong>Built-in self-test (BIST)</strong> moves the tester inside the chip. A <strong>test pattern generator</strong> (TPG) produces the patterns, an <strong>output data evaluator</strong> (ODE) compacts all the responses into one word, the <strong>signature</strong>, and a <strong>controller</strong> compares the signature with the <strong>golden</strong> one and raises one bit: GO or NOGO. Nothing has to be stored or compared outside, and the test can run at power-on, in the field, at the speed of the chip.</p>
+<p>The TPG and the ODE of a logic BIST (LBIST) are almost always <strong>linear feedback shift registers</strong>: an LFSR generates <strong>pseudo-random</strong> patterns with a few flip-flops and XOR gates, and a <strong>multiple-input signature register</strong> (MISR) compacts the responses. This raises the questions of this lab:</p>
+<ol type="1">
+<li><strong>How good are pseudo-random patterns?</strong> An LFSR does not know the circuit: how many patterns does it need, and which faults does it never detect?</li>
+<li><strong>How do you apply them?</strong> Only on the functional inputs (as in a functional test), or through the scan chain (<em>test per scan</em>)?</li>
+<li><strong>What does the chip say at the end?</strong> One signature of 32 bits for thousands of responses: when does it tell a faulty circuit from a good one, and when not?</li>
+</ol>
+<p>In this lab you will:</p>
+<ul>
+<li>compute by hand the sequence of an LFSR and the signature of a small signature register, and find when two different sequences give the same signature;</li>
+<li>run a self-test of b10 (the voting FSM of Labs 2 and 3) that drives its <strong>functional inputs</strong> from an LFSR and compacts its outputs in a MISR; measure with TestMAX how many faults its patterns detect, for several test lengths, and see the effect of a <strong>phase shifter</strong>;</li>
+<li>run a self-test <strong>per scan</strong> on the full-scan b10 of Lab 3, with a given controller: compute its test time, choose the number of patterns for a cycle budget, and compare it with the ATPG of Lab 3;</li>
+<li>inject faults into the circuit, predict GO or NOGO from the fault classes of TestMAX, and check.</li>
+</ul>
+<h3 id="12-what-you-will-be-able-to-do-at-the-end-of-this-lab">1.2 What you will be able to do at the end of this lab</h3>
+<ol type="1">
+<li><strong>Compute</strong> the states and the period of an LFSR in standard and modular form from its characteristic polynomial, and <strong>recognize</strong> a maximum-length LFSR.</li>
+<li><strong>Compute</strong> the signature of a signature register, and <strong>decide</strong> whether an error sequence is masked (aliasing).</li>
+<li><strong>Read</strong> the architecture of a logic BIST (TPG, mux, ODE, controller) in its HDL, and <strong>explain</strong> how the golden signature is obtained and when GO/NOGO is valid.</li>
+<li><strong>Write</strong> a TestMAX command file that fault-simulates the patterns of a self-test, read from an eVCD file, starting from a command file of Lab 2, and <strong>read</strong> the fault coverage against the test length.</li>
+<li><strong>Explain</strong> why adjacent outputs of an LFSR give correlated patterns, and what a phase shifter does.</li>
+<li><strong>Compute</strong> the test time of a test per scan, <strong>choose</strong> the number of patterns for a cycle budget, and <strong>compare</strong> pseudo-random patterns with ATPG patterns.</li>
+<li><strong>Predict</strong> the GO/NOGO result of a self-test for a fault from its TestMAX class, and <strong>explain</strong> the exceptions (unknown values, aliasing).</li>
+</ol>
+<h3 id="13-theory-you-must-have-clear-lecture-slides">1.3 Theory you must have clear (lecture slides)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Concept used in this lab</th>
+<th>Where it is in the course material</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BIST architecture: TPG, mux, ODE, controller; Normal/Test, Go/Nogo; BIST session and protocol</td>
+<td><em>09 – BIST</em>, slides 6–16</td>
+</tr>
+<tr>
+<td>Faults in the BIST circuitry; Go/Nogo duplicated</td>
+<td><em>09</em>, slides 17–22</td>
+</tr>
+<tr>
+<td>LFSRs: polynomials, standard and modular form, primitive polynomials, maximum length, all-zero (absorbing) state</td>
+<td><em>10 – LFSRs</em>, slides 6–28</td>
+</tr>
+<tr>
+<td>One LFSR for many inputs; the parallel output sequence</td>
+<td><em>10</em>, slides 30–31</td>
+</tr>
+<tr>
+<td>Signature analysis: SISR, MISR, error polynomial, aliasing, cancellation</td>
+<td><em>10</em>, slides 35–57</td>
+</tr>
+<tr>
+<td>LBIST of a combinational UUT: pseudo-random patterns, random-pattern-resistant faults, weighted patterns, reseeding</td>
+<td><em>11 – LBIST</em>, slides 8–26</td>
+</tr>
+<tr>
+<td>Test per clock and test per scan; STUMPS; correlated chains and the phase shifter</td>
+<td><em>11</em>, slides 27–56</td>
+</tr>
+<tr>
+<td>Functional test: inputs and outputs only, no DfT</td>
+<td><em>07 – Functional test</em>, slides 3–7</td>
+</tr>
+<tr>
+<td>Test time of a scan test: (N + 1) · L + N</td>
+<td><em>06 – Scan</em>, slides 37–38 (Lab 3)</td>
+</tr>
+<tr>
+<td>Fault simulation of external patterns, fault classes</td>
+<td><em>04 – ATPG</em> (Lab 2, Part A)</td>
+</tr>
+<tr>
+<td>Transition-delay faults</td>
+<td><em>06</em>, slides 95–116 (Lab 4)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Prerequisites:</strong> from Lab 1, <code>force</code> in Questa; from Lab 2, your command files <code>fsim_c6288.tcl</code> (Part A) and <code>atpg_b10.tcl</code> (Part D), and the coverage of the full-sequential ATPG on b10; from Lab 3, the chain of the full-scan b10 (Part C: one chain, its length) and the results of <code>atpg_b10_scan.tcl</code> (1196 faults, 100 % test coverage, 48 patterns, 932 test cycles); from Lab 4, the transition fault model. If a file is missing, extract the zip of that lab again.</p>
+<hr />
+<h2 id="2-files-and-workspace-provided">2. Files and Workspace Provided</h2>
+<p>All files are in <code>~/lab5</code>. As in the previous labs, every script <strong>changes directory into <code>run/</code></strong> before starting a tool: <strong>launch the scripts from <code>~/lab5</code></strong> and expect every generated file in <code>~/lab5/run</code>. TestMAX command files refer to the sources as <code>../&lt;file&gt;</code> and to the files written by the simulations (in <code>run/</code>) with their plain name.</p>
+<pre class="text"><code>~/lab5
+├── b10.v                    # ITC&#39;99 b10, no scan (same file as Labs 2 and 3)
+├── b10.spf                  # its protocol file (Lab 2): clocks and reset for TestMAX
+├── b10_scan.v               # b10 with one scan chain (the netlist of Lab 3, Part C)
+├── b10_scan.spf             # its protocol file (Lab 3)
+├── pdt2002.v                # PoliTo cell library for TestMAX (same file as Labs 2-4)
+├── pdt2002_sim.vhd          # the same cells, as VHDL models for Questa
+├── rtl/                     # the self-test hardware and the testbenches (VHDL)
+├── func_bist.sh             # Part B: simulates b10 with its functional self-test
+├── func_bist.tcl            # Questa commands used by func_bist.sh
+├── func_wave.do             # waveforms for GUI=1 ./func_bist.sh
+├── scan_bist.sh             # Part C: simulates b10_scan with its self-test per scan
+├── scan_bist.tcl            # Questa commands used by scan_bist.sh
+├── sweep_bist.sh            # Parts B and C: your command file for several test lengths
+├── inject_faults.sh         # Parts B and C: stuck-at faults injected one at a time, GO/NOGO
+├── tmax.sh                  # runs a TestMAX command file from run/ (as in Labs 2-4)
+├── summary.sh               # one-line summary of the last fault report in a log
+├── list_faults.sh           # faults of a fault list by class
+├── images/
+└── run/                     # all outputs (created by the scripts if missing)</code></pre>
+<p><strong>You write every TestMAX command file</strong>, starting from a file of a previous lab or of a previous part. You never edit the HDL: the self-tests are configured by the variables of the scripts (§2.3).</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>In</th>
+<th>Starting from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fsim_b10_func.tcl</code></td>
+<td>B.3</td>
+<td><code>~/lab2/fsim_c6288.tcl</code> (flow) and <code>~/lab2/atpg_b10.tcl</code> (b10 and its protocol)</td>
+</tr>
+<tr>
+<td><code>fsim_b10_scan.tcl</code></td>
+<td>C.2</td>
+<td><code>fsim_b10_func.tcl</code> and <code>~/lab3/atpg_b10_scan.tcl</code></td>
+</tr>
+<tr>
+<td><code>fsim_b10_scan_tdf.tcl</code></td>
+<td>C.4</td>
+<td><code>fsim_b10_scan.tcl</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="21-design-files">2.1 Design files</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Content</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>b10.v</code>, <code>b10.spf</code></td>
+<td>b10 without scan: 11 data inputs, <code>clock</code>, <code>reset</code>, 6 outputs, 17 flip-flops.</td>
+<td>The files of Lab 2.</td>
+</tr>
+<tr>
+<td><code>b10_scan.v</code>, <code>b10_scan.spf</code></td>
+<td>b10 with one chain of 17 scan cells, <code>test_si</code>, <code>test_se</code>; the scan-out is the functional output <code>v_out[3]</code>.</td>
+<td>The files written by Design Compiler in Lab 3, Part C.</td>
+</tr>
+<tr>
+<td><code>pdt2002.v</code></td>
+<td>Cell models for TestMAX.</td>
+<td>Its flip-flops use primitives of TestMAX, so Questa cannot simulate them: Questa uses <code>pdt2002_sim.vhd</code>, the same cells written in VHDL.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="22-the-self-test-hardware-rtl">2.2 The self-test hardware (<code>rtl/</code>)</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Block</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lfsr.vhd</code></td>
+<td>LFSR</td>
+<td>Standard-form LFSR of <code>NBITS</code> bits (8, 16, 24, 32 or 64), XNOR feedback, seed <code>SEED</code>.</td>
+</tr>
+<tr>
+<td><code>tpg.vhd</code></td>
+<td>TPG</td>
+<td>The 32-bit LFSR and, if <code>PHASE_SHIFTER = 1</code>, a phase shifter: each output is the XOR of three LFSR bits. With <code>PHASE_SHIFTER = 0</code> the outputs are adjacent LFSR bits.</td>
+</tr>
+<tr>
+<td><code>misr.vhd</code>, <code>ode.vhd</code></td>
+<td>ODE</td>
+<td>32-bit MISR in modular form, XNOR; <code>ode.vhd</code> connects the outputs of b10 to it.</td>
+</tr>
+<tr>
+<td><code>test_counter.vhd</code>, <code>lbist_state_machine.vhd</code>, <code>lbist_controller.vhd</code></td>
+<td>controller</td>
+<td>Counts the cycles of the session, enables TPG and ODE, compares the signature with <code>GOLDEN_SIGNATURE</code> and holds GO/NOGO.</td>
+</tr>
+<tr>
+<td><code>mux2to1_n.vhd</code>, <code>lbist.vhd</code>, <code>b10_wrapper.vhd</code></td>
+<td>mux, LBIST, top</td>
+<td>In normal mode the inputs of b10 come from its pins, in test mode from the TPG.</td>
+</tr>
+<tr>
+<td><code>b10_wrapper_testbench.vhd</code></td>
+<td>testbench</td>
+<td>Part B: reset, a few cycles in normal mode, then test mode until the end of the session.</td>
+</tr>
+<tr>
+<td><code>tps_ctrl.vhd</code></td>
+<td>controller</td>
+<td>Part C: for each of <code>N_PATTERNS</code> patterns, <code>CHAIN_LEN</code> shift cycles and <code>CAPTURE</code> capture cycles; then one more shift to unload.</td>
+</tr>
+<tr>
+<td><code>stumps1.vhd</code></td>
+<td>self-test per scan</td>
+<td>Part C: TPG, <code>tps_ctrl</code>, MISR and the GO/NOGO comparison, for a circuit with one scan chain.</td>
+</tr>
+<tr>
+<td><code>b10_scan_bist_testbench.vhd</code></td>
+<td>testbench</td>
+<td>Part C: connects <code>b10_scan.v</code> to <code>stumps1</code>; the only file that depends on the circuit.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="23-scripts">2.3 Scripts</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Script</th>
+<th>What it does</th>
+<th>Why it is written this way</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>func_bist.sh</code></td>
+<td>Compiles (only when a source changed) and simulates b10 with its functional self-test; prints the length of the session, the signature, the golden signature and GO/NOGO. Variables: <code>STOP</code> (session length, default 1000), <code>SEED</code>, <code>PS</code> (phase shifter), <code>GOLDEN</code>, <code>DUMP=1</code> (writes <code>run/b10_func_bist.vcd</code>), <code>INJECT=1</code>, <code>GUI=1</code>.</td>
+<td>The parameters of the hardware are generics: the script passes them to <code>vsim</code> with <code>-G</code>, so you never edit the VHDL.</td>
+</tr>
+<tr>
+<td><code>scan_bist.sh</code></td>
+<td>The same for b10_scan with the self-test per scan; prints the number of test cycles. Variables: <code>N</code> (patterns, default 50), <code>CAPTURE</code> (default 1), <code>SEED</code>, <code>PS</code>, <code>GOLDEN</code>, <code>DUMP=1</code> (writes <code>run/b10_scan_bist.vcd</code>), <code>INJECT=1</code>.</td>
+<td>As above.</td>
+</tr>
+<tr>
+<td><code>sweep_bist.sh func|scan &lt;command file&gt; "&lt;values&gt;"</code></td>
+<td>For each value of <code>STOP</code> (func) or <code>N</code> (scan): simulation with the eVCD, then <strong>your</strong> command file, unchanged; table in <code>run/sweep/&lt;file&gt;.txt</code>, logs in <code>run/sweep/</code>. The other variables still work (<code>PS=1 ./sweep_bist.sh ...</code>).</td>
+<td>The eVCD has always the same name, so the sweep repeats exactly your hand run: its row must coincide with your run.</td>
+</tr>
+<tr>
+<td><code>inject_faults.sh func|scan &lt;fault list&gt;</code></td>
+<td>For each line <code>&lt;sa0|sa1&gt; &lt;class&gt; &lt;pin&gt;</code> of the list (the format of <code>write_faults</code>): one <code>force</code> on the output pin of the cell, which fixes the whole net it drives (a stem fault, as in Lab 1); then the self-test, the signature and GO/NOGO. Only outputs of cells (<code>/O</code>, <code>/Q</code>).</td>
+<td>You choose the faults and predict the result; the script does the repetitive part. Set <code>GOLDEN</code> to the fault-free signature of the same settings.</td>
+</tr>
+<tr>
+<td><code>tmax.sh</code>, <code>summary.sh</code>, <code>list_faults.sh</code></td>
+<td>As in Labs 2–4.</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="24-the-two-self-tests">2.4 The two self-tests</h3>
+<p align="center">
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjAiIGhlaWdodD0iMzMwIiB2aWV3Qm94PSIwIDAgNzYwIDMzMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiPgogIDxyZWN0IHdpZHRoPSI3NjAiIGhlaWdodD0iMzMwIiBmaWxsPSIjZmZmZmZmIi8+CiAgPGRlZnM+CiAgICA8bWFya2VyIGlkPSJhIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjkiIHJlZlk9IjUiIG1hcmtlcldpZHRoPSI3IiBtYXJrZXJIZWlnaHQ9IjciIG9yaWVudD0iYXV0by1zdGFydC1yZXZlcnNlIj4KICAgICAgPHBhdGggZD0iTTAgMCBMMTAgNSBMMCAxMCB6IiBmaWxsPSIjMzMzIi8+CiAgICA8L21hcmtlcj4KICA8L2RlZnM+CiAgPCEtLSB3cmFwcGVyIC0tPgogIDxyZWN0IHg9IjEyMCIgeT0iMjAiIHdpZHRoPSI1MjAiIGhlaWdodD0iMjkwIiByeD0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWRhc2hhcnJheT0iNiA0Ii8+CiAgPHRleHQgeD0iMTMwIiB5PSIzOCIgZmlsbD0iIzY2NiI+YjEwX3dyYXBwZXIudmhkPC90ZXh0PgogIDwhLS0gVFBHIC0tPgogIDxyZWN0IHg9IjE0MCIgeT0iNTUiIHdpZHRoPSIxNzAiIGhlaWdodD0iNTQiIHJ4PSI2IiBmaWxsPSIjZThlZWY4IiBzdHJva2U9IiMxZjVmYTgiLz4KICA8dGV4dCB4PSIyMjUiIHk9Ijc4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzFmNWZhOCI+VFBHPC90ZXh0PgogIDx0ZXh0IHg9IjIyNSIgeT0iOTciIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxZjVmYTgiPjMyLWJpdCBMRlNSICgrIHBoYXNlIHNoaWZ0ZXIpPC90ZXh0PgogIDwhLS0gbXV4IC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMjUwLDEzNSAyOTAsMTUwIDI5MCwyMTUgMjUwLDIzMCIgZmlsbD0iI2Y0ZjRmNCIgc3Ryb2tlPSIjMzMzIi8+CiAgPHRleHQgeD0iMjcwIiB5PSIxODciIHRleHQtYW5jaG9yPSJtaWRkbGUiPm11eDwvdGV4dD4KICA8dGV4dCB4PSIyNDgiIHk9IjE0OCIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+MTwvdGV4dD4KICA8dGV4dCB4PSIyNDgiIHk9IjIyMyIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+MDwvdGV4dD4KICA8IS0tIGIxMCAtLT4KICA8cmVjdCB4PSIzMzAiIHk9IjE0MCIgd2lkdGg9IjE1MCIgaGVpZ2h0PSI4NiIgcng9IjYiIGZpbGw9IiNmZGYwZTgiIHN0cm9rZT0iI2I1NTMxYyIvPgogIDx0ZXh0IHg9IjQwNSIgeT0iMTc1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2I1NTMxYyI+YjEwIChVVVQpPC90ZXh0PgogIDx0ZXh0IHg9IjQwNSIgeT0iMTk1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjYjU1MzFjIj4xNyBmbGlwLWZsb3BzLCBubyBzY2FuPC90ZXh0PgogIDwhLS0gTUlTUiAtLT4KICA8cmVjdCB4PSI0NzAiIHk9IjI0OCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI1MCIgcng9IjYiIGZpbGw9IiNlOGVlZjgiIHN0cm9rZT0iIzFmNWZhOCIvPgogIDx0ZXh0IHg9IjU1MCIgeT0iMjY5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzFmNWZhOCI+T0RFPC90ZXh0PgogIDx0ZXh0IHg9IjU1MCIgeT0iMjg3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMWY1ZmE4Ij4zMi1iaXQgTUlTUjwvdGV4dD4KICA8IS0tIGNvbnRyb2xsZXIgLS0+CiAgPHJlY3QgeD0iMTQwIiB5PSIyNDgiIHdpZHRoPSIyOTAiIGhlaWdodD0iNTAiIHJ4PSI2IiBmaWxsPSIjZWVlZWVlIiBzdHJva2U9IiMzMzMiLz4KICA8dGV4dCB4PSIyODUiIHk9IjI2OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiPmNvbnRyb2xsZXI8L3RleHQ+CiAgPHRleHQgeD0iMjg1IiB5PSIyODciIHRleHQtYW5jaG9yPSJtaWRkbGUiPmNvdW50ZXIsIEZTTSwgY29tcGFyZSB3aXRoIHRoZSBnb2xkZW4gc2lnbmF0dXJlPC90ZXh0PgogIDwhLS0gd2lyZXMgLS0+CiAgPHBhdGggZD0iTTIyNSAxMDkgTDIyNSAxNDUgTDI0OCAxNDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjIzMiIgeT0iMTI4IiBmb250LXNpemU9IjExIiBmaWxsPSIjMzMzIj4xMTwvdGV4dD4KICA8cGF0aCBkPSJNMjAgMjIwIEwyNDggMjIwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8dGV4dCB4PSIyMiIgeT0iMjEyIj5kYXRhIGlucHV0cyAoMTEpPC90ZXh0PgogIDxwYXRoIGQ9Ik0yOTAgMTgzIEwzMjggMTgzIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8cGF0aCBkPSJNNDgwIDE4MyBMNzQwIDE4MyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+CiAgPHRleHQgeD0iNjUyIiB5PSIxNzUiPm91dHB1dHMgKDYpPC90ZXh0PgogIDxwYXRoIGQ9Ik01NTAgMTgzIEw1NTAgMjQ2IiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8cGF0aCBkPSJNNDcwIDI3MyBMNDMyIDI3MyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+CiAgPHRleHQgeD0iNDM2IiB5PSIyNjYiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMzMzMiPnNpZ25hdHVyZTwvdGV4dD4KICA8cGF0aCBkPSJNMjcwIDI0OCBMMjcwIDIyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2UtZGFzaGFycmF5PSIzIDMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8dGV4dCB4PSIyNzYiIHk9IjI0MCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzMzMyI+c2VsZWN0PC90ZXh0PgogIDxwYXRoIGQ9Ik0xNjAgMjQ4IEwxNjAgMTExIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS1kYXNoYXJyYXk9IjMgMyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjE2NiIgeT0iMTI4IiBmb250LXNpemU9IjExIiBmaWxsPSIjMzMzIj5lbmFibGU8L3RleHQ+CiAgPHBhdGggZD0iTTQzMCAyOTAgTDQ2OCAyOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLWRhc2hhcnJheT0iMyAzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+CiAgPCEtLSBleHRlcm5hbCBjb250cm9sIC0tPgogIDxwYXRoIGQ9Ik0yMCAyNjUgTDEzOCAyNjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjIyIiB5PSIyNTciPm5vcm1hbF90ZXN0PC90ZXh0PgogIDxwYXRoIGQ9Ik0xNDAgMjkwIEw2MCAyOTAgTDYwIDMxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+CiAgPHRleHQgeD0iNjgiIHk9IjMxNCI+Z29fbm9nbywgdGVzdF9vdmVyPC90ZXh0Pgo8L3N2Zz4K" alt="Functional self-test of b10: TPG, mux, b10, MISR, controller" width="760">
+</p>
+
+<p><strong>Figure 1.</strong> Part B: the functional self-test of b10 (slide 6 of <em>09 – BIST</em>). In test mode the <strong>mux</strong> connects the 11 data inputs of b10 to the <strong>TPG</strong> (a 32-bit LFSR, with an optional phase shifter); the 6 outputs of b10 go to the <strong>ODE</strong>, a 32-bit MISR. The <strong>controller</strong> runs a session of <code>COUNTER_STOP</code> clock cycles: the first <code>COUNTER_START</code> = 4 responses are not compacted; at the end it compares the signature with the golden one and holds the result on <code>go_nogo</code>, while <code>test_over</code> = 1. b10 has no scan: the self-test reaches its flip-flops only through the functional inputs.</p>
+<p align="center">
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjAiIGhlaWdodD0iNDQwIiB2aWV3Qm94PSIwIDAgNzYwIDQ0MCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTMiPgogIDxyZWN0IHdpZHRoPSI3NjAiIGhlaWdodD0iNDQwIiBmaWxsPSIjZmZmZmZmIi8+CiAgPGRlZnM+CiAgICA8bWFya2VyIGlkPSJhIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjkiIHJlZlk9IjUiIG1hcmtlcldpZHRoPSI3IiBtYXJrZXJIZWlnaHQ9IjciIG9yaWVudD0iYXV0by1zdGFydC1yZXZlcnNlIj4KICAgICAgPHBhdGggZD0iTTAgMCBMMTAgNSBMMCAxMCB6IiBmaWxsPSIjMzMzIi8+CiAgICA8L21hcmtlcj4KICA8L2RlZnM+CiAgPHRleHQgeD0iMjAiIHk9IjIyIiBmb250LXdlaWdodD0iYm9sZCI+KGEpIEFyY2hpdGVjdHVyZSAoc3R1bXBzMS52aGQgKyBiMTBfc2Nhbi52KTwvdGV4dD4KICA8IS0tIFRQRyAtLT4KICA8cmVjdCB4PSIyMCIgeT0iNDAiIHdpZHRoPSIxNzAiIGhlaWdodD0iNTQiIHJ4PSI2IiBmaWxsPSIjZThlZWY4IiBzdHJva2U9IiMxZjVmYTgiLz4KICA8dGV4dCB4PSIxMDUiIHk9IjYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzFmNWZhOCI+VFBHPC90ZXh0PgogIDx0ZXh0IHg9IjEwNSIgeT0iODIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxZjVmYTgiPjMyLWJpdCBMRlNSICgrIHBoYXNlIHNoaWZ0ZXIpPC90ZXh0PgogIDwhLS0gY29udHJvbGxlciAtLT4KICA8cmVjdCB4PSIyMCIgeT0iMTUwIiB3aWR0aD0iMTcwIiBoZWlnaHQ9IjU0IiByeD0iNiIgZmlsbD0iI2VlZWVlZSIgc3Ryb2tlPSIjMzMzIi8+CiAgPHRleHQgeD0iMTA1IiB5PSIxNzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIj50cHNfY3RybDwvdGV4dD4KICA8dGV4dCB4PSIxMDUiIHk9IjE5MiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TiBwYXR0ZXJucywgQyBjYXB0dXJlczwvdGV4dD4KICA8IS0tIGNpcmN1aXQgLS0+CiAgPHJlY3QgeD0iMjQwIiB5PSI0MCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNzAiIHJ4PSI4IiBmaWxsPSIjZmRmMGU4IiBzdHJva2U9IiNiNTUzMWMiLz4KICA8dGV4dCB4PSIzOTAiIHk9IjYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2I1NTMxYyI+YjEwX3NjYW4gKFVVVCk8L3RleHQ+CiAgPHRleHQgeD0iMzkwIiB5PSIxMDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNiNTUzMWMiPmNvbWJpbmF0aW9uYWwgbG9naWM8L3RleHQ+CiAgPCEtLSBjaGFpbiBjZWxscyAtLT4KICA8ZyBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNiNTUzMWMiPgogICAgPHJlY3QgeD0iMjYyIiB5PSIxNTAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIvPjxyZWN0IHg9IjI5MiIgeT0iMTUwIiB3aWR0aD0iMjIiIGhlaWdodD0iMjIiLz4KICAgIDxyZWN0IHg9IjMyMiIgeT0iMTUwIiB3aWR0aD0iMjIiIGhlaWdodD0iMjIiLz48cmVjdCB4PSIzNTIiIHk9IjE1MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIi8+CiAgICA8cmVjdCB4PSI0NDIiIHk9IjE1MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIi8+PHJlY3QgeD0iNDcyIiB5PSIxNTAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIvPgogICAgPHJlY3QgeD0iNTAyIiB5PSIxNTAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIvPgogIDwvZz4KICA8dGV4dCB4PSIzOTgiIHk9IjE2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2I1NTMxYyI+LiAuIC48L3RleHQ+CiAgPHRleHQgeD0iMzkwIiB5PSIxOTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNiNTUzMWMiPnNjYW4gY2hhaW4sIEwgPSAxNyBjZWxsczwvdGV4dD4KICA8IS0tIHdpcmVzIC0tPgogIDxwYXRoIGQ9Ik0xOTAgNTggTDIzOCA1OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBtYXJrZXItZW5kPSJ1cmwoI2EpIi8+CiAgPHRleHQgeD0iMTk2IiB5PSI1MiIgZm9udC1zaXplPSIxMSI+MTEgaW5wdXRzPC90ZXh0PgogIDxwYXRoIGQ9Ik0xNTAgOTQgTDE1MCAxMzAgTDI1MCAxMzAgTDI1MCAxNjEgTDI2MCAxNjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjE1NiIgeT0iMTI0IiBmb250LXNpemU9IjExIj50ZXN0X3NpPC90ZXh0PgogIDxwYXRoIGQ9Ik0xOTAgMTkwIEwyMjQgMTkwIEwyMjQgMjI1IEwyNzIgMjI1IEwyNzIgMjEyIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIHN0cm9rZS1kYXNoYXJyYXk9IjMgMyIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjE5NCIgeT0iMTg0IiBmb250LXNpemU9IjExIj50ZXN0X3NlPC90ZXh0PgogIDxwYXRoIGQ9Ik01MjQgMTYxIEw2MDAgMTYxIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8dGV4dCB4PSI1NDYiIHk9IjE1NCIgZm9udC1zaXplPSIxMSI+dl9vdXRbM108L3RleHQ+CiAgPHBhdGggZD0iTTU0MCA4MCBMNjAwIDgwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzMzMiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8dGV4dCB4PSI1NDYiIHk9Ijc0IiBmb250LXNpemU9IjExIj5vdXRwdXRzPC90ZXh0PgogIDwhLS0gTUlTUiAtLT4KICA8cmVjdCB4PSI2MDIiIHk9IjYwIiB3aWR0aD0iMTQwIiBoZWlnaHQ9IjEyMCIgcng9IjYiIGZpbGw9IiNlOGVlZjgiIHN0cm9rZT0iIzFmNWZhOCIvPgogIDx0ZXh0IHg9IjY3MiIgeT0iODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMWY1ZmE4Ij5NSVNSPC90ZXh0PgogIDx0ZXh0IHg9IjY3MiIgeT0iMTEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWY1ZmE4Ij5zaGlmdDogc2Nhbi1vdXQ8L3RleHQ+CiAgPHRleHQgeD0iNjcyIiB5PSIxMjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjVmYTgiPmFmdGVyIGNhcHR1cmU6PC90ZXh0PgogIDx0ZXh0IHg9IjY3MiIgeT0iMTQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjExIiBmaWxsPSIjMWY1ZmE4Ij5hbGwgdGhlIG91dHB1dHM8L3RleHQ+CiAgPHRleHQgeD0iNjcyIiB5PSIxNjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMxZjVmYTgiPuKGkiBnb2xkZW4/IEdPL05PR088L3RleHQ+CiAgPCEtLSB0aW1lbGluZSAtLT4KICA8dGV4dCB4PSIyMCIgeT0iMjYyIiBmb250LXdlaWdodD0iYm9sZCI+KGIpIE9uZSBzZXNzaW9uOiBOIHBhdHRlcm5zLCB0aGVuIG9uZSB1bmxvYWQ8L3RleHQ+CiAgPHRleHQgeD0iMjAiIHk9IjMwMCI+dGVzdF9zZTwvdGV4dD4KICA8cGF0aCBkPSJNODAgMzEwIEw5MCAzMTAgTDkwIDI4NSBMMjMwIDI4NSBMMjMwIDMxMCBMMjYyIDMxMCBMMjYyIDI4NSBMNDAyIDI4NSBMNDAyIDMxMCBMNDM0IDMxMCBMNDM0IDI4NQogICAgICAgICAgIEw0NzAgMjg1IiBmaWxsPSJub25lIiBzdHJva2U9IiMyMjIiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiAgPHRleHQgeD0iNDgyIiB5PSIzMDAiPi4gLiAuPC90ZXh0PgogIDxwYXRoIGQ9Ik01MTAgMjg1IEw1NDAgMjg1IEw1NDAgMzEwIEw1NzIgMzEwIEw1NzIgMjg1IEw3MTIgMjg1IEw3MTIgMzEwIEw3NDAgMzEwIiBmaWxsPSJub25lIiBzdHJva2U9IiMyMjIiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiAgPGcgZm9udC1zaXplPSIxMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+CiAgICA8dGV4dCB4PSIxNjAiIHk9IjI3OCI+c2hpZnQ6IEwgY3ljbGVzPC90ZXh0PgogICAgPHRleHQgeD0iMjQ2IiB5PSIzMjYiPkM8L3RleHQ+CiAgICA8dGV4dCB4PSIzMzIiIHk9IjI3OCI+c2hpZnQ6IEwgY3ljbGVzPC90ZXh0PgogICAgPHRleHQgeD0iNDE4IiB5PSIzMjYiPkM8L3RleHQ+CiAgICA8dGV4dCB4PSI1NTYiIHk9IjMyNiI+QzwvdGV4dD4KICAgIDx0ZXh0IHg9IjY0MiIgeT0iMjc4Ij51bmxvYWQ6IEwgY3ljbGVzPC90ZXh0PgogIDwvZz4KICA8cGF0aCBkPSJNOTAgMzQ1IEwyNjIgMzQ1IiBmaWxsPSJub25lIiBzdHJva2U9IiM2NjYiIG1hcmtlci1zdGFydD0idXJsKCNhKSIgbWFya2VyLWVuZD0idXJsKCNhKSIvPgogIDx0ZXh0IHg9IjE3NiIgeT0iMzYyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjExIiBmaWxsPSIjNDQ0Ij5wYXR0ZXJuIDE6IEwgKyBDIGN5Y2xlczwvdGV4dD4KICA8cGF0aCBkPSJNMjYyIDM0NSBMNDM0IDM0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBtYXJrZXItc3RhcnQ9InVybCgjYSkiIG1hcmtlci1lbmQ9InVybCgjYSkiLz4KICA8dGV4dCB4PSIzNDgiIHk9IjM2MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzQ0NCI+cGF0dGVybiAyIChhbHNvIHVubG9hZHMgMSk8L3RleHQ+CiAgPHRleHQgeD0iMjAiIHk9IjQwMCI+dGVzdCB0aW1lID0gTiDCtyAoTCArIEMpICsgTCBjbG9jayBjeWNsZXM7IHRoZSBzaGlmdCBvZiBlYWNoIHBhdHRlcm4gdW5sb2FkcyB0aGUgcmVzcG9uc2Ugb2YgdGhlIHByZXZpb3VzIG9uZS48L3RleHQ+CiAgPHRleHQgeD0iMjAiIHk9IjQyMCI+VFBHIGFuZCBNSVNSIHJ1biBpbiBldmVyeSBjeWNsZSBvZiB0aGUgc2Vzc2lvbjsgdGhlIGNsb2NrIG9mIGIxMCBzdG9wcyBhdCB0aGUgZW5kIG9mIHRoZSBzZXNzaW9uLjwvdGV4dD4KPC9zdmc+Cg==" alt="Self-test per scan of b10 with one chain: TPG, scan chain, MISR, controller, and its timing" width="760">
+</p>
+
+<p><strong>Figure 2.</strong> Part C: the self-test per scan of b10_scan (slides 36–39 and 50–53 of <em>11 – LBIST</em>, with one chain). Output 0 of the TPG feeds the scan input <code>test_si</code>, the others the 11 data inputs; the controller <code>tps_ctrl</code> drives <code>test_se</code>. Each pattern takes L = 17 shift cycles and C capture cycles; the shift of a pattern also unloads the response of the previous one, and a last shift unloads the response of the last pattern. The MISR compacts the scan-out <code>v_out[3]</code> in the shift cycles and all the outputs after a capture.</p>
+<h3 id="25-testmax-fault-simulation-of-the-self-test-patterns">2.5 TestMAX: fault simulation of the self-test patterns</h3>
+<p>The simulations write the patterns that the self-test applies to b10, with the responses of the fault-free circuit, in an <strong>extended VCD</strong> (eVCD) file: for each port of b10, every change of value and its direction (input driven by the testbench, or output driven by b10). TestMAX reads it as external patterns, as it read the STIL files of Lab 2 (User Guide, <em>VCDE Functional Pattern Input</em>): it cuts the file into cycles of 100 ns and measures the outputs 40 ns into each cycle, before the clock edge.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Command (as used in this lab)</th>
+<th>What it does / why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BUILD</td>
+<td><code>read_netlist ../pdt2002.v -format verilog -insensitive -library</code> · <code>read_netlist ../&lt;netlist&gt; -format verilog -insensitive</code> · <code>run_build_model b10</code></td>
+<td>As in Labs 2 and 3.</td>
+</tr>
+<tr>
+<td>DRC</td>
+<td><code>run_drc ../b10.spf</code> (Part B) · <code>set_drc ../b10_scan.spf</code> + <code>run_drc</code> (Part C)</td>
+<td>As in Labs 2 and 3: the protocol file declares <code>clock</code> and <code>reset</code> as clocks.</td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>set_patterns -external &lt;file&gt;.vcd -sensitive -strobe_period {100 ns} -strobe_offset {40 ns} -vcd_clock auto</code> <strong>new</strong></td>
+<td>External patterns from the eVCD: <code>-sensitive</code>, the names are case-sensitive; one cycle every 100 ns, outputs measured at 40 ns; <code>-vcd_clock auto</code>, the clock pulses are recognized from the clocks declared by the protocol. <em>The User Guide in the course material describes the VCDE input and the strobe settings only in general; these options are those listed by <code>help set_patterns -verbose</code> in the installed version.</em></td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>run_simulation -sequential</code> <strong>new: <code>-sequential</code></strong></td>
+<td>Good-machine simulation: <code>#fail_pats=0</code> means that TestMAX computes the same outputs as Questa. <code>-sequential</code>: the patterns are a sequence of clock cycles of a sequential circuit, not scan patterns.</td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>set_faults -model stuck | transition</code> · <code>set_faults -fault_coverage</code> · <code>add_faults -all</code></td>
+<td>As in Labs 2–4.</td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>run_fault_sim -sequential</code> <strong>new: <code>-sequential</code></strong></td>
+<td>Fault simulation of the sequence (User Guide, <em>Performing Fault Simulation</em>).</td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>report_summaries</code> · <code>write_faults &lt;file&gt; -all -uncollapsed -replace</code></td>
+<td>As before.</td>
+</tr>
+<tr>
+<td>TEST</td>
+<td><code>report_faults -profile</code> <strong>new</strong></td>
+<td>For each pattern that detects new faults: how many, and the total so far. <em>Listed by <code>help report_faults -verbose</code>.</em></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Messages that tell you a step worked</strong></p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>After</th>
+<th>Look for</th>
+<th>If it is missing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>set_patterns</code></td>
+<td><code>Note: adding -vcd_clock 0 clock</code> (and <code>reset</code>), then <code>End reading &lt;n&gt; patterns</code></td>
+<td>the eVCD does not exist: run the simulation with <code>DUMP=1</code> first; wrong name</td>
+</tr>
+<tr>
+<td><code>run_simulation</code></td>
+<td><code>#fail_pats=0</code></td>
+<td>not 0: the patterns and the netlist do not agree (wrong netlist for the eVCD)</td>
+</tr>
+<tr>
+<td><code>run_fault_sim</code></td>
+<td><code>Fault simulation completed: ... test_coverage=...</code></td>
+<td>an error before (read the first one)</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="3-guided-workflow">3. Guided Workflow</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Topic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Set-up</td>
+</tr>
+<tr>
+<td>A</td>
+<td>LFSRs and signatures by hand</td>
+</tr>
+<tr>
+<td>B</td>
+<td>A functional self-test for b10</td>
+</tr>
+<tr>
+<td>C</td>
+<td>A self-test per scan for b10</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Self-assessment quiz.</strong> On the course page on Moodle you find the quiz <em>Lab 5 - Pseudo-random test and logic BIST</em>, with one section for each part of this guide. It is <strong>not graded</strong>: you can answer as many times as you want, and each answer comes with an explanation. Part A is checked only by the quiz.</p>
+<hr />
+<h3 id="part-0--set-up">Part 0 — Set-up</h3>
+<p>Download <code>lab5.zip</code> from the course page on Moodle and extract it in your home directory:</p>
+<pre class="console"><code>$ unzip ~/Downloads/lab5.zip -d ~/lab5     # use the folder where your browser saved the file
+$ cd ~/lab5
+$ chmod +x *.sh
+$ ls . rtl
+$ which vsim tmax
+$ ls ~/lab2/fsim_c6288.tcl ~/lab2/atpg_b10.tcl ~/lab3/atpg_b10_scan.tcl
+$ ./func_bist.sh</code></pre>
+<p class="check"><strong>Checkpoint 0.</strong> You see all the files of §2 and an (empty) <code>run/</code> directory; <code>which</code> finds both tools; the three files of Labs 2 and 3 exist; <code>func_bist.sh</code> compiles the VHDL (the first time only) and ends with <code>BIST: result = GO</code>.</p>
+<hr />
+<h3 id="part-a--lfsrs-and-signatures-by-hand">Part A — LFSRs and Signatures by Hand</h3>
+<p>No tool in this part: pen, paper and the slides of <em>10 – LFSRs</em>.</p>
+<h4 id="a1--an-lfsr-in-two-forms">A.1 — An LFSR in two forms</h4>
+<p>The characteristic polynomial is P(x) = x³ + x² + 1.</p>
+<ul>
+<li><strong>Standard form</strong> (slide 17): three flip-flops Q1 → Q2 → Q3; at each clock Q2 takes Q1, Q3 takes Q2, and Q1 takes Q2 ⊕ Q3. Starting from Q1Q2Q3 = 001, write the sequence of states until it repeats.</li>
+<li><strong>Modular form</strong> (slide 19): three flip-flops D0, D1, D2; at each clock D0 takes D2, D1 takes D0, and D2 takes D1 ⊕ D2. Starting from D0D1D2 = 001, write the sequence.</li>
+</ul>
+<ol type="1">
+<li>How many different states does each sequence have? Is it the maximum for 3 flip-flops? Which state is missing, and what happens if the LFSR starts from it?</li>
+<li>Are the two sequences the same? Do the two forms go through the same set of states?</li>
+</ol>
+<h4 id="a2--maximum-length-or-not">A.2 — Maximum length or not</h4>
+<p>Three LFSRs of 4 bits in standard form: Q1 → Q2 → Q3 → Q4, and Q1 takes the XOR of the cells listed.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Polynomial</th>
+<th>Q1 takes</th>
+<th style="text-align: center;">Period from 0001</th>
+<th style="text-align: center;">Period from 0110</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>x⁴ + x³ + 1</td>
+<td>Q3 ⊕ Q4</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>x⁴ + x² + 1</td>
+<td>Q2 ⊕ Q4</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>x⁴ + x³ + x² + x + 1</td>
+<td>Q1 ⊕ Q2 ⊕ Q3 ⊕ Q4</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table></div>
+<ol type="1">
+<li>Which LFSR has maximum length? Is its polynomial in the table of primitive polynomials (slide 9)?</li>
+<li>For the other two: does the period depend on the seed? Why is that a problem for a TPG?</li>
+<li>x⁴ + x² + 1 = (x² + x + 1)²: why can it not be primitive?</li>
+</ol>
+<h4 id="a3--the-lfsr-of-the-tpg">A.3 — The LFSR of the TPG</h4>
+<p>Open <code>rtl/lfsr.vhd</code>. For <code>NBITS = 32</code> the feedback is <code>r_reg(32) xnor r_reg(22) xnor r_reg(2) xnor r_reg(1)</code>.</p>
+<ol type="1">
+<li>Write the characteristic polynomial. (It is in the table of primitive polynomials of Xilinx application note XAPP052, from which the taps are taken.)</li>
+<li>With XNOR instead of XOR, which state is the absorbing (lock-up) state: all zeros or all ones? Could the seed be 0? Which seed must never be used?</li>
+<li>How many clock cycles before the TPG repeats a pattern? At 100 MHz, how long is that?</li>
+</ol>
+<h4 id="a4--a-signature-by-hand-and-aliasing">A.4 — A signature by hand, and aliasing</h4>
+<p>A <strong>SISR</strong> (slides 43–45) with P(x) = x⁴ + x + 1, in modular form: four flip-flops D0…D3, all at 0 at the start; at each clock, with input bit <code>in</code>:</p>
+<blockquote>
+<p>D0 ← D3 ⊕ in · D1 ← D0 ⊕ D3 · D2 ← D1 · D3 ← D2</p>
+</blockquote>
+<ol type="1">
+<li>Compact the sequence <strong>11010110</strong> (first bit first). Write the signature D0D1D2D3.</li>
+<li>A faulty circuit produces <strong>11000110</strong> (the 4th bit is wrong). Compute its signature: is the fault detected?</li>
+<li>Another faulty circuit produces <strong>11000101</strong>: three bits are wrong. Compute its signature. Write the error polynomial E(x) (slide 46, first bit = x⁷) and compare it with P(x): which theorem explains what you see (slide 47)?</li>
+<li>With n = 4, what is the aliasing probability for long random sequences (slides 48–49)? And with the 32-bit MISR of this lab?</li>
+</ol>
+<p class="check"><strong>Checkpoint A.</strong> The two sequences of A.1, the six periods of A.2, the polynomial and lock-up state of A.3, and the signatures of A.4: check them in the quiz.</p>
+<blockquote>
+<p><strong>Self-check on Moodle:</strong> quiz section <em>Part A - LFSRs and signatures</em>.</p>
+</blockquote>
+<hr />
+<h3 id="part-b--a-functional-self-test-for-b10">Part B — A Functional Self-Test for b10</h3>
+<h4 id="b1--read-the-architecture">B.1 — Read the architecture</h4>
+<p>Look at Figure 1 and open <code>rtl/b10_wrapper.vhd</code>, <code>rtl/tpg.vhd</code> and <code>rtl/lbist_state_machine.vhd</code>.</p>
+<ol type="1">
+<li>Map each block of slide 6 of <em>09 – BIST</em> (TPG, mux, UUT, ODE, controller, Normal/Test, Go/Nogo) to a file and to a signal of <code>b10_wrapper.vhd</code>.</li>
+<li>In <code>tpg.vhd</code> with <code>PHASE_SHIFTER = 0</code>, which LFSR bits drive the 11 inputs of b10? The LFSR shifts by one position at each clock: what is the relation between the value of input i+1 at cycle t and the value of input i at cycle t + 1?</li>
+<li>In which states of the FSM are the TPG and the MISR enabled? When does <code>go_nogo</code> become valid, and until when does it stay valid?</li>
+<li>Which of the two BIST protocols of slide 16 does this controller implement?</li>
+</ol>
+<h4 id="b2--run-it-and-the-golden-signature">B.2 — Run it, and the golden signature</h4>
+<p>The default session is <code>COUNTER_STOP = 1000</code>. <strong>Predict</strong> how many clock cycles the session lasts (from the first cycle in <code>START_TEST</code> to the first cycle in <code>EVALUATION</code>), then:</p>
+<pre class="console"><code>$ ./func_bist.sh
+$ STOP=500 ./func_bist.sh</code></pre>
+<ol type="1">
+<li>With 500 cycles the result is NOGO, although the circuit is fault-free. Why?</li>
+<li>How do you obtain the golden signature of a new configuration? Do it for <code>STOP=500</code>, then run again with <code>GOLDEN=&lt;the signature&gt;</code>: you must get GO.</li>
+<li>Which changes of the self-test require a new golden signature? (Think of the seeds, the length, the phase shifter, the circuit.)</li>
+</ol>
+<p class="check"><strong>Checkpoint B.2.</strong> You know the number of cycles of a session of <code>STOP</code> cycles, the golden signature of <code>STOP=1000</code> and of <code>STOP=500</code>, and why the golden signature must be recomputed.</p>
+<h4 id="b3--how-many-faults-do-these-patterns-detect">B.3 — How many faults do these patterns detect?</h4>
+<p>The MISR says only GO or NOGO. To know <strong>which faults</strong> the self-test detects, fault-simulate its patterns with TestMAX. Write <code>fsim_b10_func.tcl</code>:</p>
+<ul>
+<li>start from <code>~/lab2/fsim_c6288.tcl</code>: the flow is the same (library, netlist, build, DRC, external patterns, good-machine simulation, faults, fault simulation, report, fault list);</li>
+<li>the netlist is <code>../b10.v</code> (Verilog), top <code>b10</code>, and DRC uses its protocol file <code>../b10.spf</code>, as in <code>~/lab2/atpg_b10.tcl</code>;</li>
+<li>the patterns come from <code>b10_func_bist.vcd</code> (in <code>run/</code>), with the options of §2.5; <code>run_simulation</code> and <code>run_fault_sim</code> with <code>-sequential</code>;</li>
+<li>after <code>report_summaries</code> add <code>report_faults -profile</code>; write the fault list <code>b10_func_faults.txt</code>.</li>
+</ul>
+<p><strong>Predict first.</strong> In Lab 2 the full-sequential ATPG on b10 reached about 91 % test coverage. Will 1000 cycles of pseudo-random inputs do better or worse?</p>
+<pre class="console"><code>$ DUMP=1 ./func_bist.sh
+$ ./tmax.sh fsim_b10_func.tcl
+$ grep -n &quot;fail_pats\|test_coverage&quot; run/fsim_b10_func.log
+$ ./summary.sh run/fsim_b10_func.log &quot;func 1000&quot;</code></pre>
+<ol type="1">
+<li>How many patterns did TestMAX read? Why more than 1000?</li>
+<li>In the profile, which is the last pattern that detects new faults? Do the detections come one at a time, or in bursts? What could a burst mean in an FSM?</li>
+<li>b10 has no scan and its outputs are flip-flops: which faults are detected at the very first patterns?</li>
+</ol>
+<p class="check"><strong>Checkpoint B.3.</strong> No errors; <code>#fail_pats=0</code>; you have the test coverage of the default session and the last useful pattern.</p>
+<h4 id="b4--longer-sessions-and-a-phase-shifter">B.4 — Longer sessions, and a phase shifter</h4>
+<p><strong>Predict:</strong> with 10 times more cycles, how much does the coverage grow? Then:</p>
+<pre class="console"><code>$ ./sweep_bist.sh func fsim_b10_func.tcl &quot;100 200 500 1000 2000 5000 10000&quot;</code></pre>
+<p><strong>First, validate the script:</strong> the row <code>STOP = 1000</code> must coincide with your run of B.3.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Session (cycles)</th>
+<th style="text-align: center;">100</th>
+<th style="text-align: center;">200</th>
+<th style="text-align: center;">500</th>
+<th style="text-align: center;">1000</th>
+<th style="text-align: center;">2000</th>
+<th style="text-align: center;">5000</th>
+<th style="text-align: center;">10000</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test coverage, adjacent bits</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>test coverage, phase shifter (<code>PS=1</code>)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table></div>
+<ol type="1">
+<li>From which length does the coverage stop growing? Is the period of the LFSR (A.3) the reason?</li>
+<li>Recall question 2 of B.1. If input i+1 at cycle t always equals input i at cycle t + 1, can every sequence of input vectors be applied? <strong>Predict</strong> what a phase shifter (each input = XOR of three LFSR bits, with different spacings) changes. Then run the same sweep with <code>PS=1</code> and fill the second row.</li>
+<li>A phase shifter whose outputs all use the <strong>same</strong> spacing (bits i, i+11, i+22 for input i) would not help: why? (Look at the relation of question 2 of B.1 again.)</li>
+<li>The coverage of the self-test with the phase shifter is close to the full-sequential ATPG of Lab 2. Which one needs more test cycles? Which one needs a tester?</li>
+</ol>
+<p class="check"><strong>Checkpoint B.4.</strong> The sweep agrees with your hand run; the coverage stops growing well before the period of the LFSR; the phase shifter raises the final coverage.</p>
+<h4 id="b5--go-or-nogo">B.5 — GO or NOGO?</h4>
+<p>TestMAX has classified every fault of b10 for the default session. Will the MISR give NOGO for every fault that TestMAX detects? Choose three faults from <code>run/b10_func_faults.txt</code>: <code>U91/O</code> stuck-at-1, <code>U145/O</code> stuck-at-1, <code>U154/O</code> stuck-at-1.</p>
+<pre class="console"><code>$ grep -E &quot; (U91|U145|U154)/O$&quot; run/b10_func_faults.txt</code></pre>
+<p>Write their classes (a <code>--</code> line has the class of the line above it, see <code>./list_faults.sh</code>), and <strong>predict</strong> GO or NOGO for each one. Then write the three lines in a file <code>my_faults.txt</code> (format <code>sa1 &lt;class&gt; &lt;pin&gt;</code>) and:</p>
+<pre class="console"><code>$ GOLDEN=A88DEC5B ./inject_faults.sh func my_faults.txt</code></pre>
+<ol type="1">
+<li>Which faults give NOGO? Do the results agree with the classes?</li>
+<li>One signature is <code>XXXXXXXX</code>. Which fault, and what does it do to b10 (look at the net it drives)? Why does TestMAX call it <em>possibly</em> detected, and why does the controller still say NOGO?</li>
+<li>Could a detected fault give GO? With which probability, for a 32-bit MISR (A.4)?</li>
+<li>TestMAX observes the outputs of b10 at every cycle of the eVCD; the MISR compacts only the cycles of the <code>TEST</code> state. Which cycles does TestMAX see that the MISR does not? Could a fault be DS for TestMAX and still give GO?</li>
+</ol>
+<p class="check"><strong>Checkpoint B.5.</strong> The three results agree with your predictions, or you can explain why not.</p>
+<blockquote>
+<p><strong>Self-check on Moodle:</strong> quiz section <em>Part B - A functional self-test</em>.</p>
+</blockquote>
+<hr />
+<h3 id="part-c--a-self-test-per-scan-for-b10">Part C — A Self-Test per Scan for b10</h3>
+<p>In Part B the patterns reached the 17 flip-flops of b10 only through the inputs. With the scan chain of Lab 3 the TPG can load every flip-flop directly: this is <strong>test per scan</strong> (Figure 2).</p>
+<h4 id="c1--the-controller-and-the-test-time">C.1 — The controller and the test time</h4>
+<p>Open <code>rtl/tps_ctrl.vhd</code> and <code>rtl/b10_scan_bist_testbench.vhd</code>.</p>
+<ol type="1">
+<li>Follow the states of <code>tps_ctrl</code>: how many cycles does one pattern take, with chain length L and C capture cycles? How many cycles in total for N patterns, including the last unload? Compare with the formula of a scan test (slides 37–38 of <em>06</em>): which term is different, and why?</li>
+<li>Which TPG output feeds <code>test_si</code>? Which outputs of b10 enter the MISR, and why is the scan-out in position 0?</li>
+<li><strong>Predict</strong> the number of test cycles for N = 10 and C = 1 (L from Lab 3). Then:</li>
+</ol>
+<pre class="console"><code>$ N=10 ./scan_bist.sh</code></pre>
+<p class="check"><strong>Checkpoint C.1.</strong> The number of test cycles printed by the script is the one you computed.</p>
+<h4 id="c2--write-fsim_b10_scantcl">C.2 — Write <code>fsim_b10_scan.tcl</code></h4>
+<p>Copy <code>fsim_b10_func.tcl</code> and change: the netlist <code>../b10_scan.v</code>; the protocol <code>set_drc ../b10_scan.spf</code> followed by <code>run_drc</code> (as in <code>~/lab3/atpg_b10_scan.tcl</code>); the eVCD <code>b10_scan_bist.vcd</code>; the fault list <code>b10_scan_faults.txt</code>. You can remove <code>report_faults -profile</code>.</p>
+<pre class="console"><code>$ N=10 DUMP=1 ./scan_bist.sh
+$ ./tmax.sh fsim_b10_scan.tcl
+$ ./summary.sh run/fsim_b10_scan.log &quot;scan N=10&quot;</code></pre>
+<ol type="1">
+<li>How many faults? Why more than in Part B (Lab 3)?</li>
+<li>Compare with Part B: test coverage and number of cycles.</li>
+</ol>
+<p class="check"><strong>Checkpoint C.2.</strong> No errors; <code>#fail_pats=0</code>; the number of faults is the one of Lab 3.</p>
+<h4 id="c3--how-many-patterns">C.3 — How many patterns?</h4>
+<pre class="console"><code>$ ./sweep_bist.sh scan fsim_b10_scan.tcl &quot;10 20 50 100 200 500 1000&quot;</code></pre>
+<p><strong>Validate</strong> the row <code>N = 10</code> with C.2.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>N</th>
+<th style="text-align: center;">10</th>
+<th style="text-align: center;">20</th>
+<th style="text-align: center;">50</th>
+<th style="text-align: center;">100</th>
+<th style="text-align: center;">200</th>
+<th style="text-align: center;">500</th>
+<th style="text-align: center;">1000</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test cycles</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>test coverage</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table></div>
+<ol type="1">
+<li>The ATPG of Lab 3 reached 100 % with 48 patterns and 932 test cycles. How many pseudo-random patterns, and how many cycles, for 95 %? For 99 %? Does the self-test reach 100 %?</li>
+<li><strong>A budget.</strong> The self-test must run at power-on in at most <strong>2500 clock cycles</strong>, and must reach at least <strong>95 %</strong> stuck-at test coverage. With the formula of C.1, what is the largest N that fits? <strong>Predict</strong> from the table whether the target is met, then run that N by hand (<code>N=&lt;n&gt; DUMP=1 ./scan_bist.sh</code> and your command file). Is it met?</li>
+<li>For the same number of cycles, compare the self-test per scan with the functional self-test of Part B. Where does the difference come from?</li>
+<li>Which faults are still not detected with N = 1000 (<code>./list_faults.sh run/b10_scan_faults.txt</code>, after running N = 1000 by hand)? Why can a random pattern miss them, when the ATPG finds a pattern for each one (slide 18 of <em>11</em>)?</li>
+</ol>
+<p class="check"><strong>Checkpoint C.3.</strong> The sweep agrees with C.2; you know N for the budget and whether 95 % is reached.</p>
+<h4 id="c4--transition-faults">C.4 — Transition faults</h4>
+<p>With <code>CAPTURE=2</code> each pattern has two capture cycles at the functional clock: the first launches the transitions, the second captures them (as LOC in Lab 4). Copy <code>fsim_b10_scan.tcl</code> to <code>fsim_b10_scan_tdf.tcl</code> with <code>set_faults -model transition</code> and the fault list <code>b10_scan_tdf_faults.txt</code>. Nothing else changes: the eVCD already contains the clock cycles, and TestMAX simulates them one after the other.</p>
+<pre class="console"><code>$ CAPTURE=2 ./sweep_bist.sh scan fsim_b10_scan_tdf.tcl &quot;50 200 1000&quot;
+$ ./sweep_bist.sh scan fsim_b10_scan_tdf.tcl &quot;200&quot;</code></pre>
+<ol type="1">
+<li>How many transition faults? Compare with Lab 4: which sites have none?</li>
+<li>Compare the transition coverage with one and with two capture cycles at N = 200. How does a single capture cycle detect any transition fault at all (what is the launch)?</li>
+<li>How many cycles does <code>CAPTURE=2</code> add for N patterns?</li>
+</ol>
+<h4 id="c5--another-seed-and-the-phase-shifter">C.5 — Another seed, and the phase shifter</h4>
+<p><strong>Predict</strong> first: does the seed matter? Does the phase shifter, which helped in Part B, help here?</p>
+<pre class="console"><code>$ SEED=4321 ./sweep_bist.sh scan fsim_b10_scan.tcl &quot;50 137&quot;
+$ PS=1 ./sweep_bist.sh scan fsim_b10_scan.tcl &quot;50 137&quot;</code></pre>
+<ol type="1">
+<li>How much does the coverage change with the seed, at N = 50? Would you trust a budget decision taken with one seed only?</li>
+<li>With a single chain, the TPG writes the 17 flip-flops one bit at a time through <code>test_si</code>. Why does the phase shifter not help here, while it helped in Part B? When does a self-test per scan need one (slides 54–56 of <em>11</em>)?</li>
+</ol>
+<h4 id="c6--the-verdict-of-the-self-test-per-scan">C.6 — The verdict of the self-test per scan</h4>
+<p>Choose the N of the budget of C.3. Run it once without faults to get the golden signature, then choose from <code>run/b10_scan_faults.txt</code> (of that N) one DS fault and one ND fault on outputs of cells (<code>/O</code> or <code>/Q</code>). Add <code>U145/O</code> stuck-at-1, which gave GO in Part B. <strong>Predict</strong> GO or NOGO for each one, and check:</p>
+<pre class="console"><code>$ N=&lt;n&gt; ./scan_bist.sh
+$ N=&lt;n&gt; GOLDEN=&lt;signature&gt; ./inject_faults.sh scan my_scan_faults.txt</code></pre>
+<p class="check"><strong>Checkpoint C.6.</strong> The results agree with the classes of TestMAX. Why does the self-test per scan detect <code>U145/O</code> stuck-at-1, which the functional self-test missed?</p>
+<blockquote>
+<p><strong>Self-check on Moodle:</strong> quiz section <em>Part C - A self-test per scan</em>.</p>
+</blockquote>
+<hr />
+<h2 id="4-wrap-up-and-discussion">4. Wrap-up and Discussion</h2>
+<h3 id="41-what-you-have-seen">4.1 What you have seen</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Where you met it in this lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An LFSR has maximum length only if its polynomial is primitive; otherwise its period depends on the seed</td>
+<td>A.1, A.2</td>
+</tr>
+<tr>
+<td>XNOR feedback moves the lock-up state from all zeros to all ones</td>
+<td>A.3</td>
+</tr>
+<tr>
+<td>A signature register divides the sequence by P(x): errors whose polynomial is a multiple of P(x) are masked</td>
+<td>A.4</td>
+</tr>
+<tr>
+<td>A logic BIST = TPG + mux + ODE + controller; the golden signature comes from a fault-free simulation of the same configuration</td>
+<td>B.1, B.2</td>
+</tr>
+<tr>
+<td>Fault simulation of the self-test patterns tells which faults the self-test detects; the coverage saturates long before the period of the LFSR</td>
+<td>B.3, B.4</td>
+</tr>
+<tr>
+<td>Adjacent LFSR outputs are shifted copies of the same sequence: correlated inputs; a phase shifter breaks the correlation</td>
+<td>B.4</td>
+</tr>
+<tr>
+<td>An X in the MISR corrupts the whole signature</td>
+<td>B.5</td>
+</tr>
+<tr>
+<td>Test per scan reaches the flip-flops directly: much higher coverage than a functional self-test, at the price of shift cycles</td>
+<td>C.2, C.3</td>
+</tr>
+<tr>
+<td>Pseudo-random patterns need many more cycles than ATPG patterns, and some faults resist them</td>
+<td>C.3</td>
+</tr>
+<tr>
+<td>With one chain the phase shifter is useless; the seed matters for short tests</td>
+<td>C.5</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-questions-for-discussion">4.2 Questions for discussion</h3>
+<ol type="1">
+<li>The self-test of Part B is a <strong>functional</strong> test (slides 3–5 of <em>07</em>): it uses only the inputs and outputs of b10. Which faults of b10 can a functional test never detect, even with infinite patterns?</li>
+<li>Pseudo-random patterns plus a few deterministic patterns stored on chip (slide 25 of <em>11</em>), or reseeding (slide 26): which would you choose to close the gap to 100 % in C.3, and what does each cost?</li>
+<li>A self-test runs at power-on in a car. Which fault of the BIST circuitry is dangerous: one that makes <code>go_nogo</code> stuck at 1, or stuck at 0 (slides 17–22 of <em>09</em>)? How does a duplicated, complementary Go/Nogo help?</li>
+<li>In Part C the MISR compacts the scan-out in the shift cycles and all the outputs only after a capture. Some outputs of b10 are cells of the chain: what could go wrong if the MISR compacted all the outputs at every shift cycle (slides 55–56 of <em>10</em>, cancellation)? See exercise E3.</li>
+<li>A test per clock (slides 29–35 of <em>11</em>) turns the flip-flops themselves into TPG and MISR. Compare it with the test per scan of Part C: area, test time, at-speed test.</li>
+</ol>
+<h3 id="43-self-check-can-you-do-it-without-a-tool">4.3 Self-check: can you do it without a tool?</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Quick self-check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>States of an LFSR</td>
+<td>apply the feedback rule from the seed until a state repeats</td>
+</tr>
+<tr>
+<td>Maximum length</td>
+<td>period 2ⁿ − 1 for every non-zero seed, only with a primitive polynomial</td>
+</tr>
+<tr>
+<td>Signature of a SISR</td>
+<td>apply the update rule bit by bit; the signature is the remainder of the division by P(x)</td>
+</tr>
+<tr>
+<td>Aliasing</td>
+<td>the error polynomial E(x) is a multiple of P(x); probability ≈ 2⁻ⁿ</td>
+</tr>
+<tr>
+<td>Test time of a test per scan</td>
+<td>N · (L + C) + L</td>
+</tr>
+<tr>
+<td>Largest N for a budget of B cycles</td>
+<td>⌊(B − L) / (L + C)⌋</td>
+</tr>
+<tr>
+<td>GO/NOGO from the fault class</td>
+<td>DT → NOGO (unless aliasing); ND → GO; X in the response → signature X → NOGO</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="44-habits-for-the-next-labs">4.4 Habits for the next labs</h3>
+<ul>
+<li><strong>Compute the expected number of cycles before you simulate</strong>, and compare it with the log: a mismatch means that you have not understood the protocol.</li>
+<li><strong>A golden value belongs to one configuration</strong>: change anything, recompute it.</li>
+<li><strong>Fault-simulate before you trust a self-test</strong>: GO/NOGO says nothing about the faults that the patterns never excite.</li>
+<li><strong>Validate every sweep</strong> on a hand run.</li>
+<li><strong>Use more than one seed</strong> before you draw a conclusion from pseudo-random patterns.</li>
+</ul>
+<h3 id="45-troubleshooting">4.5 Troubleshooting</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Quick check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Compilation errors (run/...compile.log)</code></td>
+<td>a VHDL file was edited, or a file is missing</td>
+<td>the first error in the compile log; extract the zip again</td>
+</tr>
+<tr>
+<td><code>vsim</code> not found</td>
+<td>Questa not set up in this terminal</td>
+<td><code>which vsim</code></td>
+</tr>
+<tr>
+<td><code>set_patterns</code> fails: file not found</td>
+<td>the simulation was run without <code>DUMP=1</code>, or the name in the command file is wrong</td>
+<td><code>ls run/*.vcd</code></td>
+</tr>
+<tr>
+<td><code>#fail_pats</code> not 0</td>
+<td>eVCD and netlist do not agree (b10.v with the scan eVCD, or the opposite)</td>
+<td>the <code>read_netlist</code> line and the eVCD name</td>
+</tr>
+<tr>
+<td><code>run_drc</code> fails in Part C</td>
+<td><code>run_drc ../b10_scan.spf</code> without <code>set_drc</code>, or the protocol of b10.v</td>
+<td><code>set_drc ../b10_scan.spf</code> then <code>run_drc</code></td>
+</tr>
+<tr>
+<td>Every fault ND, coverage 0 %</td>
+<td>the eVCD has no output values (outputs dumped as inputs)</td>
+<td>the eVCD must be written by the scripts of the lab (<code>-force_direction</code>)</td>
+</tr>
+<tr>
+<td>NOGO without faults</td>
+<td>the golden signature is for other settings</td>
+<td>rerun without <code>GOLDEN</code>, read the signature</td>
+</tr>
+<tr>
+<td><code>inject_faults.sh</code>: <code>not an output pin</code>, <code>cell not found</code></td>
+<td>the pin is an input of a cell, a port, or a cell of the other netlist</td>
+<td>use pins <code>/O</code> or <code>/Q</code> of cells of <code>b10.v</code> (func) or <code>b10_scan.v</code> (scan)</td>
+</tr>
+<tr>
+<td><code>sweep_bist.sh</code> row different from the hand run</td>
+<td>different settings (<code>SEED</code>, <code>PS</code>, <code>CAPTURE</code>) in the environment</td>
+<td><code>env | grep -E "SEED|PS|CAPTURE|GOLDEN"</code></td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-optional-exercises-and-further-study">5. Optional Exercises and Further Study</h2>
+<p><em>No step-by-step solution is provided. Discuss your results with the teaching staff.</em></p>
+<h3 id="e1--reseeding">E1 — Reseeding</h3>
+<p>At N = 50 the coverage of Part C depends strongly on the seed (C.5). Run the self-test per scan with N = 25 and several seeds, and fault-simulate each run; then find, with <code>list_faults.sh</code> and <code>comm</code>, the pair of seeds whose union of detected faults is largest. Compare two sessions of 25 patterns with different seeds against one session of 50 patterns with one seed. What would the controller need to load a new seed (slide 26 of <em>11</em>)?</p>
+<h3 id="e2--faults-in-the-bist-circuitry">E2 — Faults in the BIST circuitry</h3>
+<p>Inject stuck-at faults into the self-test hardware of Part B instead of b10 (one <code>force</code> in <code>run/inject_fault.tcl</code>, <code>INJECT=1 ./func_bist.sh</code>): on <code>go_nogo_o</code>, on <code>normal_test_i</code>, on one bit of the MISR, on one output of the TPG. For each one, is the result a false NOGO, an escape, or nothing? Which ones does a complementary Go/Nogo pair detect (slide 22 of <em>09</em>)?</p>
+<h3 id="e3--cancellation-in-the-misr">E3 — Cancellation in the MISR</h3>
+<p><code>MISR_MODE=0 ./scan_bist.sh</code> makes the MISR compact all the outputs of b10 at every cycle. Find in <code>b10_scan.spf</code> the order of the cells in the chain: which outputs of b10 are consecutive cells? Inject the DS faults of C.6 again with <code>MISR_MODE=0</code> (golden signature of that mode): do they still give NOGO? Explain with slides 55–56 of <em>10</em> in which order the outputs would have to enter the MISR to cause cancellation.</p>
+<h3 id="e4--write-the-controller-yourself">E4 — Write the controller yourself</h3>
+<p>Without looking at <code>tps_ctrl.vhd</code>, write in VHDL a controller with the same ports and generics, and replace it in a copy of the workspace. The number of cycles and the signature must not change.</p>
+<h3 id="e5--the-faults-that-random-patterns-miss">E5 — The faults that random patterns miss</h3>
+<p>Take the ND faults of the self-test per scan with N = 1000 (C.3, question 4). For a few of them, run <code>analyze_faults &lt;pin&gt; -stuck 0|1 -verbose</code> after an ATPG on <code>b10_scan.v</code> (Lab 3): how many inputs and cells must have a specific value at the same time? Estimate the probability that a random pattern sets them all.</p>
+<h3 id="e6--weighted-patterns">E6 — Weighted patterns</h3>
+<p>On paper: an AND gate with 8 inputs fed by independent random bits (probability 1/2). How many random patterns, on average, to test its output stuck-at-0? And stuck-at-1? Which probability of 1 at the inputs minimizes the patterns for both faults (slides 18–20 of <em>11</em>)?</p>
+<h3 id="e7--waveforms">E7 — Waveforms</h3>
+<p><code>GUI=1 STOP=50 ./func_bist.sh</code> opens Questa with the waveforms of <code>func_wave.do</code>. Follow the states of the controller, the inputs of b10 in test mode (check the shifted copies of B.1, question 2), and the signature from the seed to the end.</p>
+<h3 id="e8--further-analysis-of-your-results">E8 — Further analysis of your results</h3>
+<ul>
+<li><strong>B.4</strong> How many faults do the functional self-test (<code>STOP=10000</code>, <code>PS=1</code>) and the full-sequential ATPG of Lab 2 detect in common? Which ones only one of them?</li>
+<li><strong>C.3</strong> Plot (by hand) test coverage against test cycles for Parts B and C on the same axes, and mark the ATPG of Lab 3.</li>
+<li><strong>C.4</strong> Which transition faults are detected with two capture cycles and not with one?</li>
+</ul>
+<blockquote>
+<p><strong>Self-check on Moodle:</strong> quiz section <em>Optional - Further exercises</em>.</p>
+</blockquote>
+</article>
+  </main>
+</div>
+</body>
+</html>

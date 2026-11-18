@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="440" viewBox="0 0 760 440" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="760" height="440" fill="#ffffff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <text x="20" y="22" font-weight="bold">(a) Architecture (stumps1.vhd + b10_scan.v)</text>
+  <!-- TPG -->
+  <rect x="20" y="40" width="170" height="54" rx="6" fill="#e8eef8" stroke="#1f5fa8"/>
+  <text x="105" y="63" text-anchor="middle" font-weight="bold" fill="#1f5fa8">TPG</text>
+  <text x="105" y="82" text-anchor="middle" fill="#1f5fa8">32-bit LFSR (+ phase shifter)</text>
+  <!-- controller -->
+  <rect x="20" y="150" width="170" height="54" rx="6" fill="#eeeeee" stroke="#333"/>
+  <text x="105" y="173" text-anchor="middle" font-weight="bold">tps_ctrl</text>
+  <text x="105" y="192" text-anchor="middle">N patterns, C captures</text>
+  <!-- circuit -->
+  <rect x="240" y="40" width="300" height="170" rx="8" fill="#fdf0e8" stroke="#b5531c"/>
+  <text x="390" y="60" text-anchor="middle" font-weight="bold" fill="#b5531c">b10_scan (UUT)</text>
+  <text x="390" y="100" text-anchor="middle" fill="#b5531c">combinational logic</text>
+  <!-- chain cells -->
+  <g fill="#ffffff" stroke="#b5531c">
+    <rect x="262" y="150" width="22" height="22"/><rect x="292" y="150" width="22" height="22"/>
+    <rect x="322" y="150" width="22" height="22"/><rect x="352" y="150" width="22" height="22"/>
+    <rect x="442" y="150" width="22" height="22"/><rect x="472" y="150" width="22" height="22"/>
+    <rect x="502" y="150" width="22" height="22"/>
+  </g>
+  <text x="398" y="166" text-anchor="middle" fill="#b5531c">. . .</text>
+  <text x="390" y="196" text-anchor="middle" fill="#b5531c">scan chain, L = 17 cells</text>
+  <!-- wires -->
+  <path d="M190 58 L238 58" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="196" y="52" font-size="11">11 inputs</text>
+  <path d="M150 94 L150 130 L250 130 L250 161 L260 161" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="156" y="124" font-size="11">test_si</text>
+  <path d="M190 190 L224 190 L224 225 L272 225 L272 212" fill="none" stroke="#333" stroke-dasharray="3 3" marker-end="url(#a)"/>
+  <text x="194" y="184" font-size="11">test_se</text>
+  <path d="M524 161 L600 161" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="546" y="154" font-size="11">v_out[3]</text>
+  <path d="M540 80 L600 80" fill="none" stroke="#333" marker-end="url(#a)"/>
+  <text x="546" y="74" font-size="11">outputs</text>
+  <!-- MISR -->
+  <rect x="602" y="60" width="140" height="120" rx="6" fill="#e8eef8" stroke="#1f5fa8"/>
+  <text x="672" y="88" text-anchor="middle" font-weight="bold" fill="#1f5fa8">MISR</text>
+  <text x="672" y="110" text-anchor="middle" font-size="11" fill="#1f5fa8">shift: scan-out</text>
+  <text x="672" y="126" text-anchor="middle" font-size="11" fill="#1f5fa8">after capture:</text>
+  <text x="672" y="140" text-anchor="middle" font-size="11" fill="#1f5fa8">all the outputs</text>
+  <text x="672" y="165" text-anchor="middle" font-size="11" fill="#1f5fa8">→ golden? GO/NOGO</text>
+  <!-- timeline -->
+  <text x="20" y="262" font-weight="bold">(b) One session: N patterns, then one unload</text>
+  <text x="20" y="300">test_se</text>
+  <path d="M80 310 L90 310 L90 285 L230 285 L230 310 L262 310 L262 285 L402 285 L402 310 L434 310 L434 285
+           L470 285" fill="none" stroke="#222" stroke-width="1.6"/>
+  <text x="482" y="300">. . .</text>
+  <path d="M510 285 L540 285 L540 310 L572 310 L572 285 L712 285 L712 310 L740 310" fill="none" stroke="#222" stroke-width="1.6"/>
+  <g font-size="11" text-anchor="middle">
+    <text x="160" y="278">shift: L cycles</text>
+    <text x="246" y="326">C</text>
+    <text x="332" y="278">shift: L cycles</text>
+    <text x="418" y="326">C</text>
+    <text x="556" y="326">C</text>
+    <text x="642" y="278">unload: L cycles</text>
+  </g>
+  <path d="M90 345 L262 345" fill="none" stroke="#666" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="176" y="362" text-anchor="middle" font-size="11" fill="#444">pattern 1: L + C cycles</text>
+  <path d="M262 345 L434 345" fill="none" stroke="#666" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="348" y="362" text-anchor="middle" font-size="11" fill="#444">pattern 2 (also unloads 1)</text>
+  <text x="20" y="400">test time = N · (L + C) + L clock cycles; the shift of each pattern unloads the response of the previous one.</text>
+  <text x="20" y="420">TPG and MISR run in every cycle of the session; the clock of b10 stops at the end of the session.</text>
+</svg>

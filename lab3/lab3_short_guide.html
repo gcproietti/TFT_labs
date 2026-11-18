@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 3 (short) · Scan-Based ATPG: exercises and cheat sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0}
+
+/* Layout: lab-manual page, left table of contents on wide screens, single column on phones */
+:root{
+  --bg:#f6f7f9; --paper:#ffffff; --fg:#1b2230; --muted:#5a6475; --rule:#dde1e8;
+  --accent:#1d4e89; --accent-soft:#e7eef8; --signal:#b4570b; --signal-soft:#fbf0e4;
+  --code-bg:#f1f3f7; --code-fg:#1b2230; --k:#7a2e8f; --s:#2b7a3d; --c:#7b8494; --n:#b4570b; --t:#1d4e89;
+  --display:"IBM Plex Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 var(--body)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:24px 64px}
+@media (min-width:1000px){.wrap{grid-template-columns:240px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:13px}}
+nav.toc .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid var(--rule)}
+nav.toc a.h3{padding-left:22px;font-size:12px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);border-left-color:var(--accent)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-bottom:12px}
+button{font:500 13px var(--body);color:var(--accent);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)} button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+article{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding-inline:clamp(16px,4vw,48px);padding-block:clamp(20px,4vw,44px);min-width:0}
+article>*{max-width:76ch} article>.tbl,article>pre{max-width:none}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;line-height:1.25;color:var(--fg)}
+h1{font-size:clamp(26px,4vw,34px);margin:0 0 4px}
+article>h2:first-of-type{margin-top:0}
+h2{font-size:24px;margin:2.2em 0 .6em;padding-top:.8em;border-top:1px solid var(--rule)}
+h1+h2{border-top:0;padding-top:0;margin-top:0;font-size:19px;font-weight:500;color:var(--muted)}
+h3{font-size:19px;margin:1.9em 0 .5em;color:var(--accent)}
+h4{font-family:var(--body);font-size:15px;font-weight:600;margin:1.6em 0 .4em}
+a{color:var(--accent)}
+p,li{margin:.5em 0}
+code{font:0.88em var(--mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.tbl{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;font-size:14px;min-width:100%;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--rule);padding:8px 10px;vertical-align:top;text-align:left}
+th{font-weight:600;background:var(--accent-soft);color:var(--fg)}
+blockquote{margin:1.2em 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0}
+blockquote p{margin:.35em 0}
+article>blockquote:first-of-type{border-left-color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:8px;font-size:14px}
+p.check{background:var(--signal-soft);border-left:3px solid var(--signal);padding:8px 14px;border-radius:0 6px 6px 0}
+p.check strong:first-child{color:var(--signal);font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+hr{display:none}
+article img{max-width:100%;height:auto;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:10px;box-sizing:border-box}
+article>p[align]{max-width:none}
+.hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string{color:var(--s)} .hljs-comment{color:var(--c);font-style:italic}
+.hljs-number{color:var(--n)} .hljs-type,.hljs-title,.hljs-meta,.hljs-variable{color:var(--t)}
+#status{font-size:12px;color:var(--muted);align-self:center}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" id="toc" aria-label="Contents"><div class="lbl">Contents</div>
+<a href="#1-command-cheat-sheet">1. Command cheat sheet</a>
+<a class="h3" href="#11-running-the-tools">1.1 Running the tools</a>
+<a class="h3" href="#12-testmax-commands-in-the-order-of-the-modes">1.2 TestMAX commands, in the order of the modes</a>
+<a class="h3" href="#13-cell-constraints">1.3 Cell constraints</a>
+<a class="h3" href="#14-design-compiler-script-b10_scan_insertiontcl">1.4 Design Compiler script (b10_scan_insertion.tcl)</a>
+<a class="h3" href="#15-reading-the-results">1.5 Reading the results</a>
+<a href="#2-exercises">2. Exercises</a>
+<a class="h3" href="#part-a--a-full-scan-design-b06">Part A — A full-scan design: b06</a>
+<a class="h3" href="#part-b--cell-constraints-b06">Part B — Cell constraints (b06)</a>
+<a class="h3" href="#part-c--scan-insertion-b10-b12">Part C — Scan insertion (b10, b12)</a>
+<a class="h3" href="#part-d--partial-scan-and-fast-sequential-atpg-b10">Part D — Partial scan and fast-sequential ATPG (b10)</a>
+<a class="h3" href="#optional">Optional</a></nav>
+  <main style="min-width:0">
+    
+    <article id="doc"><h1 id="testing-and-fault-tolerance-01rkzyg--laboratory-3-short-version">Testing and Fault Tolerance (01RKZYG) — Laboratory 3 (short version)</h1>
+<h2 id="scan-based-atpg-and-scan-chain-insertion-exercises-and-command-cheat-sheet">Scan-Based ATPG and Scan Chain Insertion: exercises and command cheat sheet</h2>
+<blockquote>
+<p><strong>What this is:</strong> the exercises of Lab 3 without the explanations, plus a summary of the TestMAX and Design Compiler commands. The full guide (<code>lab3_guide.html</code>) explains every step, the reasons behind it and the theory: use it the first time, or whenever something here is not clear.<br />
+<strong>Working directory:</strong> <code>~/lab3</code> · all outputs in <code>~/lab3/run</code> · <strong>Tools:</strong> Synopsys TestMAX (<code>tmax</code>), Design Compiler (<code>dc_shell</code>)<br />
+<strong>Self-check:</strong> Moodle quiz <em>Lab 3 - Scan-based ATPG and scan insertion</em>, one section per part.</p>
+</blockquote>
+<hr />
+<h2 id="1-command-cheat-sheet">1. Command cheat sheet</h2>
+<h3 id="11-running-the-tools">1.1 Running the tools</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>What</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Try TestMAX commands one at a time</td>
+<td><code>cd ~/lab3/run; tmax -shell</code>, then type at the prompt; <code>quit</code></td>
+</tr>
+<tr class="even">
+<td>Run a TestMAX command file</td>
+<td><code>cd ~/lab3; ./tmax.sh &lt;file&gt;.tcl</code> → <code>run/&lt;file&gt;.log</code>; the last lines show the <strong>first</strong> error, if any</td>
+</tr>
+<tr class="odd">
+<td>Run a Design Compiler command file</td>
+<td><code>cd ~/lab3; ./dc.sh &lt;file&gt;.tcl</code> → <code>run/&lt;file&gt;.log</code>; outputs (netlist, SPF) in <code>run/</code></td>
+</tr>
+<tr class="even">
+<td>One-line summary of a TestMAX log</td>
+<td><code>./summary.sh run/&lt;file&gt;.log [label]</code> → faults, DT, PT, UD, AU, ND, patterns (basic/fast), coverages, test cycles</td>
+</tr>
+<tr class="odd">
+<td>Faults of a fault list by class</td>
+<td><code>./list_faults.sh run/&lt;list&gt;.txt</code> (not detected) · <code>./list_faults.sh run/&lt;list&gt;.txt DI</code> (given classes)</td>
+</tr>
+<tr class="even">
+<td>Sweeps</td>
+<td><code>./sweep_cells.sh</code> (Part B) · <code>./sweep_scan.sh [b10|b12]</code> (Part C) · <code>./sweep_capture.sh [b10_partial]</code> (Part D)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Paths: both tools run in <code>run/</code>. Sources are <code>../&lt;file&gt;</code>; files written by Design Compiler (<code>b10_scan.v</code>, <code>b10_scan.spf</code>) are in <code>run/</code>, so TestMAX reads them <strong>without</strong> <code>../</code>. A command file <strong>stops at the first error</strong>.</p>
+<h3 id="12-testmax-commands-in-the-order-of-the-modes">1.2 TestMAX commands, in the order of the modes</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BUILD</td>
+<td><code>read_netlist ../pdt2002.v -format verilog -insensitive -library</code></td>
+<td>cell library (always first)</td>
+</tr>
+<tr class="even">
+<td>BUILD</td>
+<td><code>read_netlist &lt;netlist&gt; -format verilog -insensitive</code></td>
+<td><code>../b06_scan.v</code>, or <code>b10_scan.v</code> from Design Compiler</td>
+</tr>
+<tr class="odd">
+<td>BUILD</td>
+<td><code>run_build_model &lt;top&gt;</code></td>
+<td><code>b06</code>, <code>b10</code>, <code>b12</code> → <strong>DRC</strong> mode</td>
+</tr>
+<tr class="even">
+<td>DRC</td>
+<td><code>set_drc &lt;spf&gt;</code></td>
+<td>protocol file: clocks, scan chains, <code>load_unload</code>, <code>capture</code></td>
+</tr>
+<tr class="odd">
+<td>DRC</td>
+<td><code>add_cell_constraints &lt;value&gt; &lt;chain&gt; -position &lt;p&gt;</code> · <code>-position {&lt;first&gt; &lt;last&gt;}</code></td>
+<td>constrain scan cells (between <code>set_drc</code> and <code>run_drc</code>)</td>
+</tr>
+<tr class="even">
+<td>DRC</td>
+<td><code>run_drc</code></td>
+<td>design rule check, <strong>scan chain tracing</strong> → <strong>TEST</strong> mode</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>report_scan_chains</code> · <code>report_scan_cells -all</code> · <code>report_nonscan_cells -summary</code></td>
+<td>chains (length, scan-in, scan-out); cells by position; non-scan cells</td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>set_faults -model stuck</code> · <code>-summary verbose</code> · <code>-fault_coverage</code> · <code>add_faults -all</code></td>
+<td>fault model, report options, fault list</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>set_atpg -capture_cycles &lt;N&gt;</code></td>
+<td>0: basic-scan only; 2–10: also fast-sequential ATPG</td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>run_atpg -auto_compression</code></td>
+<td>ATPG</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>report_summaries</code> · <code>report_patterns -all</code></td>
+<td>summaries; every pattern step by step</td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>analyze_faults &lt;pin&gt; -stuck 0|1 -verbose</code></td>
+<td>why one fault is (not) detected</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>write_faults &lt;file&gt; -all -uncollapsed -replace</code> · <code>write_patterns &lt;file&gt; -format stil -replace</code></td>
+<td>fault list; patterns (prints the number of test cycles)</td>
+</tr>
+<tr class="even">
+<td>any</td>
+<td><code>drc -force</code></td>
+<td>back from TEST to DRC mode</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="13-cell-constraints">1.3 Cell constraints</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Value</th>
+<th>Load (PPI)</th>
+<th>Observation (PPO)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>0</code> / <code>1</code></td>
+<td>always 0 / 1</td>
+<td>normal</td>
+</tr>
+<tr class="even">
+<td><code>X</code></td>
+<td>always X</td>
+<td>normal</td>
+</tr>
+<tr class="odd">
+<td><code>OX</code></td>
+<td>free</td>
+<td>captured value = X</td>
+</tr>
+<tr class="even">
+<td><code>0X</code> / <code>1X</code></td>
+<td>always 0 / 1</td>
+<td>captured value = X</td>
+</tr>
+<tr class="odd">
+<td><code>XX</code></td>
+<td>always X</td>
+<td>captured value = X</td>
+</tr>
+</tbody>
+</table></div>
+<p>Positions count from the <strong>scan-out</strong> (position 0 = cell next to scan-out). b06, chain <code>1</code>: <code>state_reg[0]</code> = 4, <code>state_reg[1]</code> = 3, <code>state_reg[2]</code> = 2. A new constraint on the same cell <strong>replaces</strong> the previous one.</p>
+<h3 id="14-design-compiler-script-b10_scan_insertiontcl">1.4 Design Compiler script (<code>b10_scan_insertion.tcl</code>)</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Command</th>
+<th>Purpose</th>
+<th>You change</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>uplevel #0 source ../pdt2002.dc_setup.tcl</code></td>
+<td>library, cells not to use</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>read_verilog ../b10.v</code> · <code>current_design b10</code> · <code>link</code> · <code>check_design</code></td>
+<td>read and link the netlist</td>
+<td>design name</td>
+</tr>
+<tr class="odd">
+<td><code>#set_dont_touch voto2_reg</code></td>
+<td>keep a flip-flop <strong>out</strong> of the chain</td>
+<td>remove <code>#</code> (Part D)</td>
+</tr>
+<tr class="even">
+<td><code>set test_default_scan_style multiplexed_flip_flop</code> · <code>create_test_protocol -infer_asynch -infer_clock</code> · <code>dft_drc</code></td>
+<td>mux-scan, test protocol, checks</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><code>set_scan_configuration -chain_count 1</code></td>
+<td>number of chains</td>
+<td>the number</td>
+</tr>
+<tr class="even">
+<td><code>preview_dft</code> · <code>insert_dft</code> · <code>dft_drc</code></td>
+<td>insert the chains</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><code>report_scan_path -view existing -chain all</code> · <code>-cell all</code> · <code>report_area</code></td>
+<td>chains, cells, area</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>write -hierarchy -format verilog -output b10_scan.v</code> · <code>write_test_protocol -output b10_scan.spf</code></td>
+<td>netlist with scan, SPF</td>
+<td>file names</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="15-reading-the-results">1.5 Reading the results</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Look for</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Chain 1 successfully traced with 9 scan_cells.</code> · <code>Design rules checking was successful</code></td>
+<td>DRC found the chain</td>
+</tr>
+<tr class="even">
+<td><code>Error: extra positional option '4' (CMD-012)</code></td>
+<td>write <code>-position 4</code></td>
+</tr>
+<tr class="odd">
+<td><strong>DI</strong> (in DT)</td>
+<td>detected by implication: faults on the scan path, shift clock, reset lines (chain test)</td>
+</tr>
+<tr class="even">
+<td><strong>AN</strong> (in AU)</td>
+<td>untestable under the current constraints / mode</td>
+</tr>
+<tr class="odd">
+<td><code>Pattern 0 (basic_scan-chain_test)</code></td>
+<td>chain test: load/unload <code>0011…</code>, no capture pulse</td>
+</tr>
+<tr class="even">
+<td><code>load</code> → <code>force_all_pis</code> → <code>measure_all_pos</code> → <code>pulse clocks</code> → <code>unload</code></td>
+<td>one basic-scan pattern</td>
+</tr>
+<tr class="odd">
+<td><code>Ann {* fast_sequential *}</code> in the STIL</td>
+<td>the following pattern has several <code>multiclock_capture</code> cycles</td>
+</tr>
+<tr class="even">
+<td>TAT = (N + 1) · L + N</td>
+<td>N patterns, L = longest chain; the tool adds a few protocol cycles</td>
+</tr>
+<tr class="odd">
+<td>test coverage = (DT + ½ PT) / (all − UD)</td>
+<td>fault coverage = (DT + ½ PT) / all</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="2-exercises">2. Exercises</h2>
+<p>Set-up: <code>unzip ~/Downloads/lab3.zip -d ~/lab3; cd ~/lab3; chmod +x *.sh; which tmax dc_shell</code>. For every exercise: <strong>predict first</strong>, then run. The number in brackets is the section of the full guide.</p>
+<h3 id="part-a--a-full-scan-design-b06">Part A — A full-scan design: b06</h3>
+<p><strong>A.1</strong> [A.1] Count the scan cells of <code>b06_scan.v</code>. Follow the <code>SI</code> pins (<code>grep -n "SI(" b06_scan.v</code>) and <strong>draw the chain</strong> from scan-in to scan-out, with the position of each cell. Which port is the scan-out? Compare with <code>ScanStructures</code> in <code>b06_scan.spf</code>. In <code>load_unload</code>, when is <code>test_se</code> = 1? <em>Predict</em> the number of faults (6 pins per scan cell; <code>grep -o "^ *[A-Z0-9]*_GATE" b06_scan.v | sort | uniq -c</code>).</p>
+<p><strong>A.2</strong> [A.2] Write <code>atpg_b06.tcl</code> (start from <code>~/lab2/atpg_b10.tcl</code>): <code>../b06_scan.v</code>, top <code>b06</code>, <code>set_drc ../b06_scan.spf</code> + <code>run_drc</code>, the three scan reports, <code>run_atpg -auto_compression</code>, <code>report_summaries</code>, <code>report_patterns -all</code>, outputs <code>b06_atpg_faults.txt</code>, <code>b06_atpg.stil</code>.</p>
+<p><strong>Checkpoint.</strong> No errors; one chain traced with your number of cells; positions as in your drawing; no non-scan cells; total faults = your count.</p>
+<p><strong>A.3</strong> [A.3] <em>Predict</em> the coverage (b10 without scan had 0 % with basic-scan ATPG) and write the TAT formula. Fill in: faults, DT (DI), AU, test coverage, patterns, TAT by formula, test cycles from <code>grep "test cycles" run/atpg_b06.log</code>. Which faults are DI (<code>./list_faults.sh run/b06_atpg_faults.txt DI</code>)? What does pattern 0 do? Why is <code>measure_all_pos</code> before <code>pulse clocks</code>? Where do the extra tool cycles come from?</p>
+<h3 id="part-b--cell-constraints-b06">Part B — Cell constraints (b06)</h3>
+<p><strong>B.1</strong> [B.1] <em>Predict:</em> with <code>OX</code> on <code>state_reg[0]</code>, the gates that drive <strong>only</strong> its <code>D</code> input (<code>grep -n "N46" b06_scan.v</code> and backwards): how many faults are certainly lost? <code>0</code>, <code>1</code> or <code>X</code>: which costs more? <code>X</code> or <code>OX</code>? Is <code>0X</code> = <code>0</code> + <code>OX</code>? Is <code>XX</code> = <code>X</code> + <code>OX</code>?</p>
+<p><strong>B.2</strong> [B.2] <code>atpg_b06_cc.tcl</code> = <code>atpg_b06.tcl</code> + <code>add_cell_constraints OX 1 -position 4</code> between <code>set_drc</code> and <code>run_drc</code>, without the reports, outputs <code>b06_cc_*</code>.</p>
+<p><strong>Checkpoint.</strong> At least your count of faults lost, all in class AN (<code>./list_faults.sh run/b06_cc_faults.txt</code>).</p>
+<p>Then <code>atpg_b06_0x.tcl</code>: the same with <code>0X</code> instead of <code>OX</code>, outputs <code>b06_0x_*</code>. <em>Predict</em> first: is the loss <code>0</code> + <code>OX</code>? <strong>Checkpoint.</strong> <code>0X</code> loses more than <code>OX</code>.</p>
+<p><strong>B.3</strong> [B.3] <code>./sweep_cells.sh</code> → <code>run/sweep_cells/table.txt</code> (15 settings: 7 values on <code>state_reg[0]</code>, 7 on <code>state_reg[2:0]</code>). Validate rows 01, 05 and 06. Rank the values; check your predictions on additivity; where are the PT faults? Why is the whole state register so expensive?</p>
+<p><strong>B.4</strong> [B.4] <code>atpg_b06_xx.tcl</code>: <code>XX</code> on <code>-position {2 4}</code> and <code>analyze_faults U51/O -stuck 0 -verbose</code>. Excitation or observation? Which cells? In row 08 (<code>XX</code> on <code>state_reg[0]</code> only) is the fault detected (<code>./list_faults.sh run/sweep_cells/08_state0_XX_faults.txt | grep U51/O</code>)? Why?</p>
+<h3 id="part-c--scan-insertion-b10-b12">Part C — Scan insertion (b10, b12)</h3>
+<p><strong>C.1</strong> [C.1] <em>Predict</em> chain length and new ports. <code>./dc.sh b10_scan_insertion.tcl</code>; check <code>run/b10_scan.v</code> (scan cells, module header), <code>run/b10_scan.spf</code> (<code>ScanLength</code>, <code>ScanIn</code>, <code>ScanOut</code>), the two <code>report_area</code> totals.</p>
+<p><strong>Checkpoint.</strong> No errors; 17 scan cells; one chain of 17. Which port is the scan-out? Did the area change, and why?</p>
+<p><strong>C.2</strong> [C.2] <code>atpg_b10_scan.tcl</code> from <code>atpg_b06.tcl</code>: <code>read_netlist b10_scan.v</code>, <code>set_drc b10_scan.spf</code> (no <code>../</code>), top <code>b10</code>. <em>Predict</em> the faults (Lab 2: 1124) and the coverage. Compare with Lab 2 (91.10 %, 32 patterns, 416 cycles, 37 s).</p>
+<p><strong>C.3</strong> [C.3] <code>b10_scan4.tcl</code> = <code>b10_scan_insertion.tcl</code> with <code>-chain_count 4</code> and outputs <code>b10_scan4.v</code>/<code>.spf</code>; <code>atpg_b10_scan4.tcl</code> with the new names. <em>Predict</em> longest chain and new ports, then run both.</p>
+<p><strong>Checkpoint.</strong> Four chains, the longest as predicted; about the same patterns, far fewer test cycles than with one chain.</p>
+<p><em>Predict</em> longest chain, patterns and TAT for the other configurations, then <code>./sweep_scan.sh</code> → <code>run/sweep_scan/table.txt</code>; validate the rows b10/1 and b10/4 (<code>diff b10_scan4.tcl run/sweep_scan/b10_4_dc.tcl</code>). Is the TAT divided exactly by 4? Do patterns and coverage depend on the chains? What is the cost of more chains (ports of <code>run/sweep_scan/b12_4.v</code>)?</p>
+<h3 id="part-d--partial-scan-and-fast-sequential-atpg-b10">Part D — Partial scan and fast-sequential ATPG (b10)</h3>
+<p><strong>D.1</strong> [D.1] Where are <code>voto2</code> and <code>last_r</code> used? <em>Predict</em> which faults basic-scan ATPG loses if those two flip-flops are not scanned, and the trend of the coverage with 0, 2, 4, 10 capture cycles.</p>
+<p><strong>D.2</strong> [D.2] <code>b10_partial.tcl</code> = <code>b10_scan_insertion.tcl</code> with the two <code>set_dont_touch</code> lines active and outputs <code>b10_partial.v</code>/<code>.spf</code>; run it with <code>./dc.sh</code>. <code>atpg_b10_partial.tcl</code> = <code>atpg_b10_scan.tcl</code> with the new names.</p>
+<p><strong>Checkpoint.</strong> Chain of 15; 2 non-scan cells; coverage lower than full scan.</p>
+<p><strong>D.3</strong> [D.3] <code>atpg_b10_partial_cc4.tcl</code> = <code>atpg_b10_partial.tcl</code> + <code>set_atpg -capture_cycles 4</code> before <code>run_atpg</code>, outputs <code>b10_partial_cc4_*</code>. <em>Predict</em> the change in patterns and coverage.</p>
+<p><strong>Checkpoint.</strong> Basic-scan and fast-sequential patterns; coverage higher than in D.2.</p>
+<p><code>./sweep_capture.sh b10_partial</code> → <code>run/sweep_capture/b10_partial_table.txt</code>; validate rows 0 and 4. How many fast-sequential patterns, how much coverage? Find a fast-sequential pattern in <code>run/b10_partial_cc4.stil</code> (<code>grep -n -A12 fast_sequential</code>): how many capture cycles, where are the outputs compared? Which faults remain with 10 cycles? No scan, partial scan or full scan: which one would you choose?</p>
+<h3 id="optional">Optional</h3>
+<p>E1 <code>analyze_faults U51/O -stuck 0 -display</code> in the GUI · E2 <code>XX</code> on <code>state_reg[1]</code> only: is <code>U51/O</code> sa0 detected? · E3 count the cycles of a pattern in <code>run/b06_atpg.stil</code> · E4 which flip-flops in which chain (<code>run/sweep_scan/b10_4.spf</code>) · E5 full-sequential ATPG on the partial-scan b10 · E6 your own partial scan of b12 · E7 <code>add_pi_constraints 0 test_se</code> · E8 further questions on your results (full guide, §5) · <strong>E9 from scratch:</strong> without copying, write the DC file for b12 with 2 chains and 2 non-scan flip-flops, and the TestMAX file with 4 capture cycles; compare with this cheat sheet only at the end.</p>
+</article>
+  </main>
+</div>
+
+</body>
+</html>

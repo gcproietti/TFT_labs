@@ -1,0 +1,52 @@
+STIL 1.0 { Design 2005; }
+// ex1 (Lab 1 half adder): the 4 exhaustive patterns of Lab 1, in the order
+// of ex1_patterns.txt (A B = 00, 10, 11, 01). _po = expected S C (H = 1, L = 0).
+Signals {
+   "A" In; "B" In; "S" Out; "C" Out;
+}
+SignalGroups {
+   "_pi" = '"A" + "B"'; // #signals=2
+   "_po" = '"S" + "C"'; // #signals=2
+   "_default_In_Timing_" = '"A" + "B"';
+   "_default_Out_Timing_" = '"S" + "C"';
+}
+Timing {
+   WaveformTable "_default_WFT_" {
+      Period '100ns';
+      Waveforms {
+         "_default_In_Timing_" { 0 { '0ns' D; } }
+         "_default_In_Timing_" { 1 { '0ns' U; } }
+         "_default_In_Timing_" { Z { '0ns' Z; } }
+         "_default_In_Timing_" { N { '0ns' N; } }
+         "_default_Out_Timing_" { X { '0ns' X; } }
+         "_default_Out_Timing_" { H { '0ns' X; '40ns' H; } }
+         "_default_Out_Timing_" { T { '0ns' X; '40ns' T; } }
+         "_default_Out_Timing_" { L { '0ns' X; '40ns' L; } }
+      }
+   }
+}
+PatternBurst "_burst_" {
+   PatList { "_pattern_" {
+   }
+}}
+PatternExec {
+   PatternBurst "_burst_";
+}
+Procedures {
+   "capture" {
+      W "_default_WFT_";
+      C { "_po"=\r2 X ; }
+      "forcePI": V { "_pi"=\r2 # ; }
+      "measurePO": V { "_po"=\r2 # ; }
+   }
+}
+MacroDefs {
+}
+Pattern "_pattern_" {
+   W "_default_WFT_";
+   "precondition all Signals": C { "_pi"=\r2 0 ; "_po"=\r2 X ; }
+   "pattern 0": Call "capture" { "_pi"=00; "_po"=LL; }
+   "pattern 1": Call "capture" { "_pi"=10; "_po"=HL; }
+   "pattern 2": Call "capture" { "_pi"=11; "_po"=LH; }
+   "pattern 3": Call "capture" { "_pi"=01; "_po"=HL; }
+}

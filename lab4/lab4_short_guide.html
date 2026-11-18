@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab 4 (short) · Transition-Delay Faults and Scan Compression</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lab-manual page, left table of contents on wide screens, single column on phones */
+:root{
+  --bg:#f6f7f9; --paper:#ffffff; --fg:#1b2230; --muted:#5a6475; --rule:#dde1e8;
+  --accent:#1d4e89; --accent-soft:#e7eef8; --signal:#b4570b; --signal-soft:#fbf0e4;
+  --code-bg:#f1f3f7; --code-fg:#1b2230; --k:#7a2e8f; --s:#2b7a3d; --c:#7b8494; --n:#b4570b; --t:#1d4e89;
+  --display:"IBM Plex Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --paper:#181d26; --fg:#e3e7ee; --muted:#9aa4b5; --rule:#2c3442;
+  --accent:#8db6ea; --accent-soft:#1d2a3d; --signal:#f0a35e; --signal-soft:#2e2318;
+  --code-bg:#11151c; --code-fg:#dfe4ec; --k:#d39ae6; --s:#8fd19e; --c:#7d889a; --n:#f0a35e; --t:#8db6ea; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 var(--body)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:24px 64px}
+@media (min-width:1000px){.wrap{grid-template-columns:240px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1000px){nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:13px}}
+nav.toc .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid var(--rule)}
+nav.toc a.h3{padding-left:22px;font-size:12px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);border-left-color:var(--accent)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-bottom:12px}
+button{font:500 13px var(--body);color:var(--accent);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)} button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+article{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding-inline:clamp(16px,4vw,48px);padding-block:clamp(20px,4vw,44px);min-width:0}
+article>*{max-width:76ch} article>.tbl,article>pre{max-width:none}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;line-height:1.25;color:var(--fg)}
+h1{font-size:clamp(26px,4vw,34px);margin:0 0 4px}
+article>h2:first-of-type{margin-top:0}
+h2{font-size:24px;margin:2.2em 0 .6em;padding-top:.8em;border-top:1px solid var(--rule)}
+h1+h2{border-top:0;padding-top:0;margin-top:0;font-size:19px;font-weight:500;color:var(--muted)}
+h3{font-size:19px;margin:1.9em 0 .5em;color:var(--accent)}
+h4{font-family:var(--body);font-size:15px;font-weight:600;margin:1.6em 0 .4em}
+a{color:var(--accent)}
+p,li{margin:.5em 0}
+code{font:0.88em var(--mono);background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.tbl{overflow-x:auto;margin:1em 0}
+table{border-collapse:collapse;font-size:14px;min-width:100%;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--rule);padding:8px 10px;vertical-align:top;text-align:left}
+th{font-weight:600;background:var(--accent-soft);color:var(--fg)}
+blockquote{margin:1.2em 0;padding:10px 16px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0}
+blockquote p{margin:.35em 0}
+article>blockquote:first-of-type{border-left-color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:8px;font-size:14px}
+p.check{background:var(--signal-soft);border-left:3px solid var(--signal);padding:8px 14px;border-radius:0 6px 6px 0}
+p.check strong:first-child{color:var(--signal);font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+hr{display:none}
+article img{max-width:100%;height:auto;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:10px;box-sizing:border-box}
+article>p[align]{max-width:none}
+.hljs-keyword,.hljs-built_in,.hljs-literal{color:var(--k)}
+.hljs-string{color:var(--s)} .hljs-comment{color:var(--c);font-style:italic}
+.hljs-number{color:var(--n)} .hljs-type,.hljs-title,.hljs-meta,.hljs-variable{color:var(--t)}
+#status{font-size:12px;color:var(--muted);align-self:center}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" id="toc" aria-label="Contents"><div class="lbl">Contents</div>
+<a href="#1-command-cheat-sheet">1. Command cheat sheet</a>
+<a class="h3" href="#11-running-the-tools">1.1 Running the tools</a>
+<a class="h3" href="#12-testmax-commands-in-the-order-of-the-modes">1.2 TestMAX commands, in the order of the modes</a>
+<a class="h3" href="#13-transition-faults">1.3 Transition faults</a>
+<a class="h3" href="#14-design-compiler-from-b10_scan_insertiontcl-lab-3-to-b12_compresstcl">1.4 Design Compiler: from b10_scan_insertion.tcl (Lab 3) to b12_compress.tcl</a>
+<a class="h3" href="#15-reading-the-results">1.5 Reading the results</a>
+<a href="#2-exercises">2. Exercises</a>
+<a class="h3" href="#part-a--transition-faults-and-launch-on-shift-b06">Part A — Transition faults and launch on shift (b06)</a>
+<a class="h3" href="#part-b--launch-on-capture-b06">Part B — Launch on capture (b06)</a>
+<a class="h3" href="#part-c--scan-compression-b12">Part C — Scan compression (b12)</a>
+<a class="h3" href="#part-d--how-much-compression-b12">Part D — How much compression? (b12)</a>
+<a class="h3" href="#optional">Optional</a></nav>
+  <main style="min-width:0">
+    <article id="doc"><h1 id="testing-and-fault-tolerance-01rkzyg--laboratory-4-short-version">Testing and Fault Tolerance (01RKZYG) — Laboratory 4 (short version)</h1>
+<h2 id="transition-delay-faults-and-scan-compression-exercises-and-command-cheat-sheet">Transition-Delay Faults and Scan Compression: exercises and command cheat sheet</h2>
+<blockquote>
+<p><strong>What this is:</strong> the exercises of Lab 4 without the explanations, plus a summary of the TestMAX and Design Compiler commands. The full guide (<code>lab4_guide.html</code>) explains every step, the reasons behind it and the theory: use it the first time, or whenever something here is not clear.<br />
+<strong>Working directory:</strong> <code>~/lab4</code> · all outputs in <code>~/lab4/run</code> · <strong>Tools:</strong> Synopsys TestMAX (<code>tmax</code>), Design Compiler (<code>dc_shell</code>)<br />
+<strong>Self-check:</strong> Moodle quiz <em>Lab 4 - Transition-delay faults and scan compression</em>, one section per part.</p>
+</blockquote>
+<hr />
+<h2 id="1-command-cheat-sheet">1. Command cheat sheet</h2>
+<h3 id="11-running-the-tools">1.1 Running the tools</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>What</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Try TestMAX commands one at a time</td>
+<td><code>cd ~/lab4/run; tmax -shell</code>, then type at the prompt; <code>quit</code></td>
+</tr>
+<tr class="even">
+<td>Run a TestMAX command file</td>
+<td><code>cd ~/lab4; ./tmax.sh &lt;file&gt;.tcl</code> → <code>run/&lt;file&gt;.log</code>; the last lines show the <strong>first</strong> error, if any</td>
+</tr>
+<tr class="odd">
+<td>Run a Design Compiler command file</td>
+<td><code>cd ~/lab4; ./dc.sh &lt;file&gt;.tcl</code> → <code>run/&lt;file&gt;.log</code>; outputs (netlist, SPFs) in <code>run/</code></td>
+</tr>
+<tr class="even">
+<td>One-line summary of a TestMAX log</td>
+<td><code>./summary.sh run/&lt;file&gt;.log [label]</code> → faults, DT, PT, UD, AU, ND, patterns (basic/fast), coverages, test cycles</td>
+</tr>
+<tr class="odd">
+<td>Faults of a fault list by class</td>
+<td><code>./list_faults.sh run/&lt;list&gt;.txt</code> (not detected) · <code>./list_faults.sh run/&lt;list&gt;.txt DI</code> (given classes); stuck-at and transition</td>
+</tr>
+<tr class="even">
+<td>Sweeps</td>
+<td><code>./sweep_delay.sh</code> (Part B) · <code>./sweep_compress.sh [stuck|transition]</code> (Part D), after your hand runs</td>
+</tr>
+</tbody>
+</table></div>
+<p>Paths: both tools run in <code>run/</code>. Sources are <code>../&lt;file&gt;</code>; files written by Design Compiler (<code>b12_scan.v</code>, <code>b12_scan.spf</code>, <code>b12_scancompress.spf</code>) are in <code>run/</code>, so TestMAX reads them <strong>without</strong> <code>../</code>. A command file <strong>stops at the first error</strong>.</p>
+<h3 id="12-testmax-commands-in-the-order-of-the-modes">1.2 TestMAX commands, in the order of the modes</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BUILD</td>
+<td><code>read_netlist ../pdt2002.v -format verilog -insensitive -library</code></td>
+<td>cell library (always first)</td>
+</tr>
+<tr class="even">
+<td>BUILD</td>
+<td><code>read_netlist &lt;netlist&gt; -format verilog -insensitive</code> · <code>run_build_model &lt;top&gt;</code></td>
+<td>design → <strong>DRC</strong> mode</td>
+</tr>
+<tr class="odd">
+<td>DRC</td>
+<td><code>set_drc &lt;spf&gt;</code></td>
+<td>protocol file; b12: <code>b12_scan.spf</code> (bypass) or <code>b12_scancompress.spf</code> (compressed)</td>
+</tr>
+<tr class="even">
+<td>DRC</td>
+<td><code>set_delay -launch_cycle last_shift</code></td>
+<td>transition faults, launch on shift (LOS)</td>
+</tr>
+<tr class="odd">
+<td>DRC</td>
+<td><code>set_delay -launch_cycle system_clock</code> · <code>set_delay -nopi_changes</code> · <code>add_pi_constraints 0 test_se</code></td>
+<td>launch on capture (LOC), inputs held, scan enable inactive</td>
+</tr>
+<tr class="even">
+<td>DRC</td>
+<td><code>run_drc</code></td>
+<td>design rule check, scan chain tracing → <strong>TEST</strong> mode</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>report_scan_chains</code> · <code>report_compressors -load -verbose</code> · <code>report_compressors -unload -verbose</code></td>
+<td>chains; decompressor; compressor (compressed mode only)</td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>set_faults -model stuck|transition</code> · <code>-summary verbose</code> · <code>-fault_coverage</code> · <code>add_faults -all</code></td>
+<td>fault model, report options, fault list</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>set_atpg -capture_cycles 2</code></td>
+<td>LOC: fast-sequential ATPG (≥ 2), before <code>run_atpg</code></td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>run_atpg -auto_compression</code> · <code>report_summaries</code> · <code>report_patterns -all</code></td>
+<td>ATPG, summaries, patterns</td>
+</tr>
+<tr class="odd">
+<td>TEST</td>
+<td><code>analyze_faults &lt;pin&gt; -slow r|f -verbose</code></td>
+<td>why one transition fault is (not) detected</td>
+</tr>
+<tr class="even">
+<td>TEST</td>
+<td><code>write_faults &lt;file&gt; -all -uncollapsed -replace</code> · <code>write_patterns &lt;file&gt; -format stil -replace</code></td>
+<td>fault list; patterns (prints the test cycles)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="13-transition-faults">1.3 Transition faults</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>LOS (<code>last_shift</code>)</th>
+<th>LOC (<code>system_clock</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>V1</td>
+<td>state after L − 1 shifts; PIs forced <strong>before</strong> the load</td>
+<td>loaded state + PIs</td>
+</tr>
+<tr class="even">
+<td>launch</td>
+<td>last shift (scan enable = 1)</td>
+<td>system clock (scan enable = 0)</td>
+</tr>
+<tr class="odd">
+<td>V2</td>
+<td>V1 shifted by one cell along the chain; PIs forced again</td>
+<td>next state F(V1); PIs held with <code>-nopi_changes</code></td>
+</tr>
+<tr class="even">
+<td>scan enable</td>
+<td>must fall <strong>at speed</strong>, between launch and capture</td>
+<td>constrained to 0: <code>add_pi_constraints 0 test_se</code></td>
+</tr>
+<tr class="odd">
+<td>ATPG engine</td>
+<td>basic-scan (<code>capture_cycles</code> not needed)</td>
+<td>fast-sequential: <code>set_atpg -capture_cycles 2</code></td>
+</tr>
+<tr class="even">
+<td>procedures between two loads (k)</td>
+<td>2 (PI force before the load, capture)</td>
+<td>2 (launch, capture); 3 with <code>-nopi_changes</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Slow-to-rise (<code>str</code>) on a node: V1 sets it to 0; V2 sets it to 1 <strong>and</strong> detects a stuck-at-0 on it. Slow-to-fall (<code>stf</code>): the opposite. TestMAX places transition faults on the stuck-at sites <strong>except</strong> the clock, reset and scan-enable networks. Test cycles = (N + 1) · (L + 1) + 2 + 1 + k · (N − 1).</p>
+<h3 id="14-design-compiler-from-b10_scan_insertiontcl-lab-3-to-b12_compresstcl">1.4 Design Compiler: from <code>b10_scan_insertion.tcl</code> (Lab 3) to <code>b12_compress.tcl</code></h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Change</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>design</td>
+<td><code>read_verilog ../b12.v</code> · <code>current_design b12</code>; no <code>set_dont_touch</code></td>
+</tr>
+<tr class="even">
+<td>add, before <code>create_test_protocol</code></td>
+<td><code>set_dft_configuration -scan_compression enable</code></td>
+</tr>
+<tr class="odd">
+<td>external chains (scan pin pairs)</td>
+<td><code>set_scan_configuration -chain_count 3</code></td>
+</tr>
+<tr class="even">
+<td>add: internal chains</td>
+<td><code>set_scan_compression_configuration -chain_count 4</code></td>
+</tr>
+<tr class="odd">
+<td>add, after <code>insert_dft</code> and <code>dft_drc</code></td>
+<td><code>change_names -rules verilog -hierarchy</code></td>
+</tr>
+<tr class="even">
+<td>keep</td>
+<td><code>report_scan_path -view existing -chain all</code> (standard scan chains only) · <code>report_area</code></td>
+</tr>
+<tr class="odd">
+<td>outputs</td>
+<td><code>write -hierarchy -format verilog -output b12_scan.v</code></td>
+</tr>
+<tr class="even">
+<td>two protocol files</td>
+<td><code>write_test_protocol -output b12_scan.spf -test_mode Internal_scan</code> · <code>write_test_protocol -output b12_scancompress.spf -test_mode ScanCompression_mode</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The two SPFs describe the same netlist: <code>test_mode</code> = 0 (bypass: 3 chains from <code>test_si&lt;n&gt;</code> to <code>test_so&lt;n&gt;</code>) or 1 (compressed: internal chains between decompressor and compressor, groups <code>load_group</code>/<code>unload_group</code>/<code>mode_group</code>, block <code>CompressorStructures</code>).</p>
+<h3 id="15-reading-the-results">1.5 Reading the results</h3>
+<div class="tbl"><table>
+<thead>
+<tr class="header">
+<th>Look for</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>#basic_scan</code> / <code>#fast_sequential patterns</code></td>
+<td>LOS gives basic-scan patterns, LOC fast-sequential (2 capture cycles)</td>
+</tr>
+<tr class="even">
+<td><code>M236</code> at <code>run_atpg</code></td>
+<td>LOC without <code>set_atpg -capture_cycles 2</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;n&gt; faults were added to fault list.</code></td>
+<td>transition faults: 368 on b06 (432 stuck-at)</td>
+</tr>
+<tr class="even">
+<td>M977 · M487</td>
+<td>scan enable not declared in the SPF · an input (reset) may change at speed</td>
+</tr>
+<tr class="odd">
+<td><code>str</code>/<code>stf</code> in the fault list</td>
+<td>transition faults: slow-to-rise / slow-to-fall</td>
+</tr>
+<tr class="even">
+<td><code>ScanLength</code> in the two SPFs</td>
+<td>bypass: ⌈121 / N<sub>e</sub>⌉; compressed: ⌈121 / N<sub>i</sub>⌉ (b12)</td>
+</tr>
+<tr class="odd">
+<td>test time reduction</td>
+<td>(L<sub>scan</sub> · N<sub>scan</sub>) / (L<sub>comp</sub> · N<sub>comp</sub>)</td>
+</tr>
+<tr class="even">
+<td>test data volume</td>
+<td>scan: 3 · L · chains · N; compressed: L · (scan-in + 2 · scan-out) · N</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="2-exercises">2. Exercises</h2>
+<p>Set-up: <code>unzip ~/Downloads/lab4.zip -d ~/lab4; cd ~/lab4; chmod +x *.sh; which tmax dc_shell</code>; check that <code>~/lab3</code> has <code>atpg_b06.tcl</code>, <code>atpg_b10_scan.tcl</code>, <code>b10_scan_insertion.tcl</code>, <code>run/b06_atpg_faults.txt</code>. <strong>Every command file is written by you</strong>, starting from a file of Lab 3 or of a previous step. For every exercise: <strong>predict first</strong>, then run. The number in brackets is the section of the full guide.</p>
+<h3 id="part-a--transition-faults-and-launch-on-shift-b06">Part A — Transition faults and launch on shift (b06)</h3>
+<p><strong>A.1</strong> [A.1] Slow-to-rise: which stuck-at does it behave like in the capture cycle? Conditions on V1 and V2. <em>Predict</em> the number of transition faults of b06.</p>
+<p><strong>A.2</strong> [A.2] With the chain order of Lab 3 (LOS: V2 of a cell = V1 of the previous cell, PIs free in V1 and V2; LOC: V2 = F(V1)), decide for <code>str U51/O</code>, <code>str U30/I2</code>, <code>str U33/O</code>, <code>str eql</code> whether a pair exists in LOS, in LOC with PIs held, in LOC with PIs changing.</p>
+<p><strong>A.3</strong> [A.3] <code>atpg_b06_los.tcl</code> = <code>~/lab3/atpg_b06.tcl</code> + <code>set_delay -launch_cycle last_shift</code> before <code>run_drc</code>, <code>set_faults -model transition</code>, outputs <code>b06_los_*</code>. <em>Predict</em> coverage and pattern type. Find which sites have no transition fault (<code>diff</code> with <code>~/lab3/run/b06_atpg_faults.txt</code>). Check the four faults: <code>./list_faults.sh run/b06_los_faults.txt | grep -E " (U51/O|U30/I2|U33/O|eql)$"</code>.</p>
+<p><strong>Checkpoint.</strong> No errors; 368 transition faults (no clock, reset, scan-enable sites), 40 DI; basic-scan patterns only; coverage below stuck-at; the four faults as predicted.</p>
+<h3 id="part-b--launch-on-capture-b06">Part B — Launch on capture (b06)</h3>
+<p><strong>B.1</strong> [B.1] <code>atpg_b06_loc.tcl</code>: <code>set_delay -launch_cycle system_clock</code>, <code>set_delay -nopi_changes</code>, <code>add_pi_constraints 0 test_se</code> before <code>run_drc</code>; <code>set_atpg -capture_cycles 2</code> before <code>run_atpg</code>; outputs <code>b06_loc_*</code>. <code>atpg_b06_loc_pi.tcl</code>: the same with <code>-pi_changes</code>. <em>Predict</em> pattern type, pulses per pattern, coverage. What does <code>str U33/O</code> tell you about state 111? Warning M977?</p>
+<p><strong>Checkpoint.</strong> Fast-sequential patterns (pattern 0 is the chain test); two pulses between load and unload; the four faults as predicted.</p>
+<p><strong>B.2</strong> [B.2] <code>atpg_b06_los_af.tcl</code>, <code>atpg_b06_loc_af.tcl</code>: <code>analyze_faults U30/I2 -slow r -verbose</code> instead of <code>report_patterns</code>. Class in each mode; which scan cell blocks LOS?</p>
+<p><strong>B.3</strong> [B.3] <code>./sweep_delay.sh</code> → <code>run/sweep_delay/table.txt</code> (stuck-at, LOS, LOC held, LOC changing, LOC held without <code>test_se</code> constraint). Validate rows 01–04. Rank the coverages; faults gained by <code>-pi_changes</code> (and M487); why row 05 = row 03; k for each row from the test cycles and from the procedures in the STIL; faults no setting detects.</p>
+<h3 id="part-c--scan-compression-b12">Part C — Scan compression (b12)</h3>
+<p><strong>C.1</strong> [C.1] <code>b12_compress.tcl</code> from <code>~/lab3/b10_scan_insertion.tcl</code> (§1.4). <em>Predict</em> chains and lengths in both modes, cycles per load, new ports. Run with <code>./dc.sh</code>; ports, modules, area, <code>ScanLength</code> in both SPFs; which test mode does <code>report_scan_path</code> show?</p>
+<p><strong>Checkpoint.</strong> No errors; 3 chains (41) and 4 internal chains (31); decompressor and compressor modules.</p>
+<p><strong>C.2</strong> [C.2] <code>diff run/b12_scan.spf run/b12_scancompress.spf</code>: value of <code>test_mode</code>; chains with and without <code>ScanIn</code>/<code>ScanOut</code>; <code>sccompin</code>/<code>sccompout</code> and the groups; <code>CompressorStructures</code>; <code>ScanEnable</code> (compare with <code>b06_scan.spf</code>).</p>
+<p><strong>C.3</strong> [C.3] <code>atpg_b12_bypass.tcl</code> (<code>set_drc b12_scan.spf</code>) and <code>atpg_b12_comp.tcl</code> (<code>set_drc b12_scancompress.spf</code> + <code>report_compressors -load -verbose</code>, <code>-unload -verbose</code>), from <code>~/lab3/atpg_b10_scan.tcl</code>, stuck-at, no <code>../</code>. <em>Predict</em> faults (vs 6656 of Lab 3), patterns, test cycles. Table with the Lab 3 rows. Which faults does only the bypass mode miss?</p>
+<p><strong>Checkpoint.</strong> Same faults in both modes; 3 vs 4 chains traced; fewer test cycles and higher coverage in compressed mode.</p>
+<p><strong>C.4</strong> [C.4] Decompressor: data pins, mode pin, modes; chains sharing a bit in each mode; can 1, 0, 0 on output ids 0, 2, 3 be loaded in one shift cycle? Compressor: which errors cancel; an X on chain 1.</p>
+<h3 id="part-d--how-much-compression-b12">Part D — How much compression? (b12)</h3>
+<p><strong>D.1</strong> [D.1] <code>b12_compress_4x30.tcl</code> (4 external, 30 internal chains, outputs <code>b12_4x30*</code>) and <code>atpg_b12_4x30_comp.tcl</code>. <em>Predict</em> chain length, cycles, coverage vs 3 × 4.</p>
+<p><strong>D.2</strong> [D.2] <em>Predict</em> the chain lengths of 3 × 4, 1 × 2, 1 × 5, 1 × 30, 4 × 10, 4 × 30. <code>./sweep_compress.sh</code> → <code>run/sweep_compress/table_stuck.txt</code>; validate rows 3 × 4 and 4 × 30. 1 × 30: modes and coverage; coverage vs data pins per chain; bypass coverage; time and data volume reductions; 4 × 10 and 4 × 30 vs Lab 3 with 4 chains; why keep the bypass mode.</p>
+<h3 id="optional">Optional</h3>
+<p>E1 <code>-pi_changes</code> without the <code>test_se</code> constraint, and <code>set_delay -launch_cycle any</code> · E2 <code>add_po_masks -all</code> in LOC · E3 <code>./sweep_compress.sh transition</code> · E4 the decompressor in the Design Compiler GUI · E5 the launch/capture waveform tables · E6 LOS and LOC on the full-scan b10 of Lab 3 · E7 <strong>from scratch:</strong> LOC transition ATPG on the compressed b12 with <code>analyze_faults -class an</code>; compare with this cheat sheet only at the end · E8 further questions on your results (full guide, §5).</p>
+</article>
+  </main>
+</div>
+</body>
+</html>
